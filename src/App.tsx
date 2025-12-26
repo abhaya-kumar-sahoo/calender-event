@@ -1,23 +1,28 @@
-import { Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
-import About from './pages/About';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { StoreProvider } from './store/StoreContext';
+import DashboardLayout from './components/DashboardLayout';
+import Scheduling from './pages/dashboard/Scheduling';
+import Meetings from './pages/dashboard/Meetings';
+import Contacts from './pages/dashboard/Contacts';
+import BookingPage from './pages/booking/BookingPage';
 
 function App() {
   return (
-    <div>
-      <nav className='p-4 bg-gray-800 text-white flex gap-4 justify-center'>
-        <Link to='/' className='hover:text-gray-300'>
-          Home
-        </Link>
-        <Link to='/about' className='hover:text-gray-300'>
-          About
-        </Link>
-      </nav>
+    <StoreProvider>
       <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/about' element={<About />} />
+        <Route path='/' element={<Navigate to='/dashboard' replace />} />
+
+        {/* Host Dashboard Routes */}
+        <Route path='/dashboard' element={<DashboardLayout />}>
+          <Route index element={<Scheduling />} />
+          <Route path='meetings' element={<Meetings />} />
+          <Route path='contacts' element={<Contacts />} />
+        </Route>
+
+        {/* Public Booking Page */}
+        <Route path='/book/:eventSlug' element={<BookingPage />} />
       </Routes>
-    </div>
+    </StoreProvider>
   );
 }
 
