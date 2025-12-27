@@ -4,7 +4,7 @@ import { EventType, Booking } from '../types';
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:5001',
+    baseUrl: 'https://calender-event-6p9k.onrender.com',
     credentials: 'include',
   }),
   tagTypes: ['User', 'Events', 'Bookings'],

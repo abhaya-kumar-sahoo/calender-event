@@ -110,7 +110,8 @@ export default function DashboardLayout() {
             </div>
             <button
               onClick={() =>
-                (window.location.href = 'http://localhost:5001/auth/logout')
+                (window.location.href =
+                  'https://calender-event-6p9k.onrender.com/auth/logout')
               }
               className='text-gray-400 hover:text-red-600 transition-colors p-2'
               title='Logout'
