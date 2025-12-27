@@ -5,6 +5,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const passport = require('passport');
+const MongoStore = require('connect-mongo');
 
 require('./config/passport');
 
@@ -34,17 +35,32 @@ app.use((req, res, next) => {
     next();
 });
 
-console.log('Environment:', process.env.NODE_ENV);
-console.log('Client URL:', process.env.CLIENT_URL);
+
+// Debugging Middleware for Cookies
+app.use((req, res, next) => {
+    console.log(`[Debug] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
+    console.log(`[Debug] Incoming Cookies:`, req.headers.cookie);
+    next();
+});
+
+const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER !== undefined;
+console.log('Session Config - isProduction:', isProduction);
 
 app.use(session({
+    name: 'sid',
     secret: process.env.SESSION_SECRET || 'secret',
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI,
+        collectionName: 'sessions', // Optional, defaults to "sessions"
+    }),
+    proxy: true, // Important for Render/Heroku (behind load balancer)
     cookie: {
-        secure: process.env.NODE_ENV === 'production' || process.env.RENDER === 'true',
-        sameSite: (process.env.NODE_ENV === 'production' || process.env.RENDER === 'true') ? 'none' : 'lax',
-        maxAge: 24 * 60 * 60 * 1000
+        httpOnly: true,
+        secure: true,        // REQUIRED (HTTPS)
+        sameSite: 'none',    // REQUIRED (cross-site)
+        maxAge: 24 * 60 * 60 * 1000,
     }
 }));
 
