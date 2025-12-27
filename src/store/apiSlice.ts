@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { EventType, Booking } from '../types';
-import { baseUrl, isTesting } from '../utility';
+import { baseUrl } from '../utility';
 
 export const apiSlice = createApi({
   reducerPath: 'api',

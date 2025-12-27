@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Calendar, Link as LinkIcon, Users, Menu, X } from 'lucide-react';
 import clsx from 'clsx';
-import { baseUrl, isTesting } from '../utility';
+import { baseUrl } from '../utility';
 
 export default function DashboardLayout() {
   const location = useLocation();
