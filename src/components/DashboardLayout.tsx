@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Calendar, Link as LinkIcon, Users, Menu, X } from 'lucide-react';
 import clsx from 'clsx';
+import { isTesting } from '../utility';
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -110,8 +111,9 @@ export default function DashboardLayout() {
             </div>
             <button
               onClick={() =>
-                (window.location.href =
-                  'https://calender-event-6p9k.onrender.com/auth/logout')
+                (window.location.href = isTesting
+                  ? 'http://localhost:5001/auth/logout'
+                  : 'https://calender-event-6p9k.onrender.com/auth/logout')
               }
               className='text-gray-400 hover:text-red-600 transition-colors p-2'
               title='Logout'

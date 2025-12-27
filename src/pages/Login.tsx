@@ -1,8 +1,11 @@
 import { Calendar } from 'lucide-react';
+import { isTesting } from '../utility';
 
 export default function Login() {
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:5001/auth/google';
+    window.location.href = isTesting
+      ? 'http://localhost:5001/auth/google'
+      : 'https://calender-event-6p9k.onrender.com/auth/google';
   };
 
   return (

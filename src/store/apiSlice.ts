@@ -1,10 +1,13 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { EventType, Booking } from '../types';
+import { isTesting } from '../utility';
 
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'https://calender-event-6p9k.onrender.com',
+    baseUrl: isTesting
+      ? 'http://localhost:5001'
+      : 'https://calender-event-6p9k.onrender.com',
     credentials: 'include',
   }),
   tagTypes: ['User', 'Events', 'Bookings'],
