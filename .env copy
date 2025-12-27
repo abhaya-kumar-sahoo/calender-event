@@ -1,12 +1,12 @@
 PORT=5001
 MONGODB_URI=mongodb://localhost:27017/invitation-calendar
-GOOGLE_CLIENT_ID=548924493828-1dutkt2erfq0tirc13mege3oc0ea2vpp.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
+GOOGLE_CLIENT_ID=644272291759-vdk5iq05up04tgpirshkovkkj0efgohk.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
 GOOGLE_CALLBACK_URL=http://localhost:5001/auth/google/callback
 SESSION_SECRET=your_session_secret
 CLIENT_URL=http://localhost:5173
 RESEND_API_KEY=re_g3j2XK8h_5GZu4wUJc7tP1LvrqkvhXvFU
 # Email Configuration (SMTP)
-SMTP_USER=heritagelanefurniture@gmail.com
-GOOGLE_APP_PASSWORD=hcbx hgmf xarr uqff
+SMTP_USER=abhaya.saffron@gmail.com
+GOOGLE_APP_PASSWORD=liur kmkg imgh hxld
 

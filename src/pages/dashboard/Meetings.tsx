@@ -87,14 +87,14 @@ export default function Meetings() {
 
   return (
     <div>
-      <div className='flex justify-between items-center mb-6'>
+      <div className='flex flex-col sm:flex-row justify-between items-center mb-6 gap-4'>
         <h1 className='text-2xl font-bold text-gray-900'>Meetings</h1>
 
-        <div className='bg-gray-100 p-1 rounded-lg flex text-sm font-medium'>
+        <div className='bg-gray-100 p-1 rounded-lg flex text-sm font-medium w-full sm:w-auto'>
           <button
             onClick={() => setFilter('upcoming')}
             className={clsx(
-              'px-4 py-1.5 rounded-md transition-all',
+              'flex-1 sm:flex-none px-4 py-1.5 rounded-md transition-all text-center',
               filter === 'upcoming'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
@@ -105,7 +105,7 @@ export default function Meetings() {
           <button
             onClick={() => setFilter('past')}
             className={clsx(
-              'px-4 py-1.5 rounded-md transition-all',
+              'flex-1 sm:flex-none px-4 py-1.5 rounded-md transition-all text-center',
               filter === 'past'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
@@ -170,7 +170,7 @@ export default function Meetings() {
                       </div>
                     </div>
 
-                    <div className='flex items-center gap-4'>
+                    <div className='flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto mt-4 md:mt-0'>
                       <span
                         className={clsx(
                           'px-2.5 py-1 rounded-full text-xs font-medium border capitalize',
@@ -312,7 +312,7 @@ export default function Meetings() {
             <input
               type='date'
               required
-              className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+              className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900'
               value={rescheduleData.date}
               onChange={(e) =>
                 setRescheduleData({ ...rescheduleData, date: e.target.value })
@@ -326,7 +326,7 @@ export default function Meetings() {
             <input
               type='time'
               required
-              className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+              className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900'
               value={rescheduleData.time}
               onChange={(e) =>
                 setRescheduleData({ ...rescheduleData, time: e.target.value })

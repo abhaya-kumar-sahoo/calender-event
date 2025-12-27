@@ -3,6 +3,9 @@ import { useStore } from '../../store/StoreContext';
 import { Clock, Copy, Plus, ExternalLink, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Modal from '../../components/Modal';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { format } from 'date-fns';
 
 export default function Scheduling() {
   const { events, addEvent, bookings, updateEvent, addBooking } = useStore();
@@ -263,7 +266,7 @@ export default function Scheduling() {
                 <input
                   id='title'
                   required
-                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900'
                   placeholder='e.g. 15 Minute Discussion'
                   value={formData.title}
                   onChange={(e) =>
@@ -281,7 +284,7 @@ export default function Scheduling() {
                 </label>
                 <select
                   id='duration'
-                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white'
+                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white text-gray-900'
                   value={formData.duration}
                   onChange={(e) =>
                     setFormData({
@@ -308,7 +311,7 @@ export default function Scheduling() {
                 <textarea
                   id='description'
                   rows={3}
-                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none'
+                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-gray-900'
                   placeholder='Briefly describe what this event is about...'
                   value={formData.description}
                   onChange={(e) =>
@@ -345,13 +348,13 @@ export default function Scheduling() {
           ) : (
             // Quick Booking Form
             <>
-              <div className='flex gap-4'>
+              <div className='flex flex-col md:flex-row gap-4'>
                 <div className='flex-1'>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
                     Meeting Title
                   </label>
                   <input
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900'
                     placeholder='Quick Chat'
                     value={quickBookingData.title || ''}
                     onChange={(e) =>
@@ -366,13 +369,13 @@ export default function Scheduling() {
                     Leave blank to use an existing event type below (optional)
                   </p>
                 </div>
-                <div className='w-1/3'>
+                <div className='w-full md:w-1/3'>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
                     Duration (min)
                   </label>
                   <input
                     type='number'
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900'
                     value={quickBookingData.duration || 30}
                     onChange={(e) =>
                       setQuickBookingData({
@@ -401,7 +404,7 @@ export default function Scheduling() {
 
               <div>
                 <select
-                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white'
+                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white text-gray-900'
                   value={quickBookingData.eventId}
                   onChange={(e) =>
                     setQuickBookingData({
@@ -421,14 +424,14 @@ export default function Scheduling() {
                 </select>
               </div>
 
-              <div className='grid grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
                     Guest Name *
                   </label>
                   <input
                     required
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900'
                     placeholder='Jane Doe'
                     value={quickBookingData.guestName}
                     onChange={(e) =>
@@ -446,7 +449,7 @@ export default function Scheduling() {
                   <input
                     required
                     type='email'
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900'
                     placeholder='jane@example.com'
                     value={quickBookingData.guestEmail}
                     onChange={(e) =>
@@ -459,39 +462,58 @@ export default function Scheduling() {
                 </div>
               </div>
 
-              <div className='grid grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
                     Date *
                   </label>
-                  <input
-                    required
-                    type='date'
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
-                    value={quickBookingData.date}
-                    onChange={(e) =>
+                  <DatePicker
+                    selected={
+                      quickBookingData.date
+                        ? new Date(quickBookingData.date)
+                        : null
+                    }
+                    onChange={(date) =>
                       setQuickBookingData({
                         ...quickBookingData,
-                        date: e.target.value,
+                        date: date ? format(date, 'yyyy-MM-dd') : '',
                       })
                     }
+                    dateFormat='MMM d, yyyy'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900'
+                    placeholderText='Select Date'
+                    required
                   />
                 </div>
                 <div>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
                     Time *
                   </label>
-                  <input
-                    required
-                    type='time'
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
-                    value={quickBookingData.time}
-                    onChange={(e) =>
+                  <DatePicker
+                    selected={
+                      quickBookingData.time
+                        ? new Date(
+                            `${
+                              quickBookingData.date ||
+                              format(new Date(), 'yyyy-MM-dd')
+                            }T${quickBookingData.time}`
+                          )
+                        : null
+                    }
+                    onChange={(date) =>
                       setQuickBookingData({
                         ...quickBookingData,
-                        time: e.target.value,
+                        time: date ? format(date, 'HH:mm') : '',
                       })
                     }
+                    showTimeSelect
+                    showTimeSelectOnly
+                    timeIntervals={15}
+                    timeCaption='Time'
+                    dateFormat='h:mm aa'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900'
+                    placeholderText='Select Time'
+                    required
                   />
                 </div>
               </div>
@@ -502,7 +524,7 @@ export default function Scheduling() {
                 </label>
                 <textarea
                   rows={2}
-                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none'
+                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-gray-900'
                   placeholder='Any additional notes...'
                   value={quickBookingData.notes}
                   onChange={(e) =>

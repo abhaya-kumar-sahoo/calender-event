@@ -36,7 +36,7 @@ export default function Modal({
       />
 
       {/* Content */}
-      <div className='relative bg-white rounded-xl shadow-xl w-full max-w-md p-6 transform transition-all scale-100 opacity-100'>
+      <div className='relative bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto transform transition-all scale-100 opacity-100'>
         <div className='flex justify-between items-center mb-4'>
           <h3 className='text-xl font-bold text-gray-900'>{title}</h3>
           <button
