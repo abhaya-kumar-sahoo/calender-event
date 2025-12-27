@@ -155,7 +155,7 @@ router.post('/bookings', async (req, res) => {
                 : ''
             }
         
-        <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">This invitation was sent via Calendly Clone.</p>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">This invitation was sent via Tesseract.</p>
       </div>
     `;
 
@@ -209,7 +209,7 @@ router.put('/bookings/:id', isAuthenticated, async (req, res) => {
                     <p><strong>Event:</strong> ${bookingTitle}</p>
                     <p><strong>Host:</strong> ${host.name}</p>
                     <p><strong>Original Date & Time:</strong> ${new Date(booking.startTime).toLocaleString('en-US', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })} (IST)</p>
-                    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">This notification was sent via Calendly Clone.</p>
+                    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">This notification was sent via Tesseract.</p>
                 </div>
              `;
 

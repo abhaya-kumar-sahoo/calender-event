@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 const sendConfirmationEmail = async (to, subject, html) => {
     try {
         const mailOptions = {
-            from: `"Calendly Clone" <${process.env.SMTP_USER}>`,
+            from: `"Tesseract" <${process.env.SMTP_USER}>`,
             to,
             subject,
             html,
