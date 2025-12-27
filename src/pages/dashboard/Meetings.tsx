@@ -233,14 +233,19 @@ export default function Meetings() {
                           <h3 className='text-xs font-bold text-gray-400 uppercase tracking-wider mb-1'>
                             Invitee Time Zone
                           </h3>
-                          <p className='text-gray-900'>India Standard Time</p>
+                          <p className='text-gray-900'>
+                            {' '}
+                            Australia Standard Time (Melbourne)
+                          </p>
                         </div>
 
                         <div>
                           <h3 className='text-xs font-bold text-gray-400 uppercase tracking-wider mb-1'>
                             Meeting Host
                           </h3>
-                          <p className='text-gray-900'>Abhaya Kumar Sahoo</p>
+                          <p className='text-gray-900'>
+                            Heritage Lane & Co Furniture
+                          </p>
                         </div>
 
                         {booking.notes && (

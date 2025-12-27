@@ -12,6 +12,7 @@ export interface Booking {
   eventId: string;
   guestName: string;
   guestEmail: string;
+  guestMobile?: string;
   additionalGuests?: string[];
   startTime: string; // ISO date string
   notes?: string;

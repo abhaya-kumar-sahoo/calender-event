@@ -14,7 +14,6 @@ import {
   isSameMonth,
   isSameDay,
   isBefore,
-  startOfToday,
 } from 'date-fns';
 import {
   ChevronLeft,
@@ -22,11 +21,12 @@ import {
   Clock,
   Globe,
   Calendar as CalendarIcon,
-  CheckCircle,
   ArrowLeft,
   X,
+  MapPin,
 } from 'lucide-react';
 import clsx from 'clsx';
+import logo from '../../assets/logo.png';
 
 type BookingStep = 'date-time' | 'form' | 'confirmation';
 
@@ -38,13 +38,14 @@ export default function BookingPage() {
   });
 
   const [step, setStep] = useState<BookingStep>('date-time');
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    mobile: '',
     notes: '',
   });
 
@@ -89,8 +90,8 @@ export default function BookingPage() {
   // Time Slots Generation (Mock)
   const generateTimeSlots = () => {
     const slots = [];
-    let startHour = 9;
-    const endHour = 17;
+    let startHour = 10;
+    const endHour = 19;
 
     for (let h = startHour; h < endHour; h++) {
       slots.push(`${h}:00`);
@@ -101,8 +102,11 @@ export default function BookingPage() {
 
   const timeSlots = generateTimeSlots();
 
+  // Minimum booking date: 3rd January 2026
+  const minDate = new Date(2026, 0, 3);
+
   const handleDateClick = (day: Date) => {
-    if (isBefore(day, startOfToday())) return;
+    if (isBefore(day, minDate)) return;
     setSelectedDate(day);
     setSelectedTime(null); // reset time when date changes
   };
@@ -153,6 +157,7 @@ export default function BookingPage() {
       eventId: event.id,
       guestName: formData.name,
       guestEmail: formData.email,
+      guestMobile: formData.mobile,
       additionalGuests: finalGuests,
       startTime: bookingDateTime.toISOString(),
       notes: formData.notes,
@@ -176,12 +181,18 @@ export default function BookingPage() {
     return (
       <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
         <div className='bg-white max-w-lg w-full rounded-lg shadow-lg border border-gray-100 p-8 text-center'>
-          <div className='w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600'>
-            <CheckCircle className='w-8 h-8' />
+          <div className='bg-green-100 flex items-center justify-center mx-auto mb-6 text-green-600'>
+            <div className='mb-6 flex justify-center md:justify-start'>
+              <img
+                src={logo}
+                alt='Heritage Lane & Co'
+                className='w-[280px] h-auto object-contain'
+              />
+            </div>
           </div>
           <h2 className='text-2xl font-bold text-gray-900 mb-2'>Confirmed</h2>
           <p className='text-gray-600 mb-6'>
-            You are scheduled with Abhaya Kumar Sahoo.
+            You are scheduled with Heritage Lane & Co Furniture.
           </p>
 
           <div className='bg-gray-50 rounded-lg p-4 text-left mb-8 border border-gray-100'>
@@ -204,13 +215,6 @@ export default function BookingPage() {
               </div>
             )}
           </div>
-
-          <Link
-            to='/dashboard'
-            className='block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors'
-          >
-            Back to Dashboard
-          </Link>
         </div>
       </div>
     );
@@ -221,6 +225,15 @@ export default function BookingPage() {
       <div className='bg-white w-full max-w-5xl rounded-lg shadow-xl border border-gray-200 overflow-hidden flex flex-col md:flex-row min-h-[600px]'>
         {/* Left Panel: Event Info */}
         <div className='p-6 md:p-8 border-b md:border-b-0 md:border-r border-gray-200 md:w-1/3 bg-white'>
+          {/* Logo */}
+          <div className='mb-6 flex justify-center md:justify-start'>
+            <img
+              src={logo}
+              alt='Heritage Lane & Co'
+              className='w-[280px] h-auto object-contain'
+            />
+          </div>
+
           {step === 'form' && (
             <button
               onClick={() => setStep('date-time')}
@@ -231,20 +244,32 @@ export default function BookingPage() {
           )}
 
           <div className='text-gray-500 font-medium mb-1'>
-            Abhaya Kumar Sahoo
+            Heritage Lane and Co Furniture
           </div>
           <h1 className='text-2xl font-bold text-gray-900 mb-4'>
             {event.title}
           </h1>
 
-          <div className='space-y-3 text-gray-600'>
-            <div className='flex items-center gap-3'>
-              <Clock className='w-5 h-5 text-gray-400' />
-              <span>{event.duration} min</span>
-            </div>
+          <div className='space-y-4 text-gray-600'>
+            {/* Location */}
+            <a
+              href='https://www.google.com/maps/place/Heritage+Lane+%26+Co.+Furniture+Melbourne/@-37.8721929,144.7443595,57m/data=!3m1!1e3!4m6!3m5!1s0x6ad68952fb5e1a87:0x914594e155e5ae!8m2!3d-37.872261!4d144.744583!16s%2Fg%2F11yh3bl836?entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoASAFQAw%3D%3D'
+              target='_blank'
+              rel='noopener noreferrer'
+              className='flex items-start gap-3 hover:bg-gray-50 p-2 -ml-2 rounded-lg transition-colors group'
+            >
+              <MapPin className='w-5 h-5 text-gray-400 mt-0.5 group-hover:text-blue-600 transition-colors' />
+              <div className='text-gray-600 group-hover:text-blue-600 transition-colors'>
+                <p className='font-medium text-black group-hover:text-blue-700'>
+                  1/22-30 Wallace Ave
+                </p>
+                <p>Point Cook VIC 3030</p>
+              </div>
+            </a>
+
             <div className='flex items-center gap-3'>
               <Globe className='w-5 h-5 text-gray-400' />
-              <span>India Standard Time</span>
+              <span>Australian Eastern Time (Melbourne)</span>
             </div>
           </div>
 
@@ -264,9 +289,12 @@ export default function BookingPage() {
                   selectedDate ? 'md:mr-8' : 'w-full mx-auto max-w-sm'
                 )}
               >
-                <h2 className='text-xl font-bold text-gray-900 mb-6 sticky top-0 bg-white'>
+                <h2 className='text-xl font-bold text-gray-900 mb-2 sticky top-0 bg-white'>
                   Select a Date & Time
                 </h2>
+                <p className='text-sm text-gray-500 mb-6'>
+                  Dates available from 3rd January 2026
+                </p>
 
                 <div className='flex justify-between items-center mb-4'>
                   <button
@@ -301,7 +329,7 @@ export default function BookingPage() {
                     const isSelected = selectedDate
                       ? isSameDay(day, selectedDate)
                       : false;
-                    const isPast = isBefore(day, startOfToday());
+                    const isPast = isBefore(day, minDate);
                     const isCurrentMonth = isSameMonth(day, currentMonth);
 
                     return (
@@ -409,6 +437,24 @@ export default function BookingPage() {
                   />
                 </div>
 
+                <div>
+                  <label
+                    htmlFor='mobile'
+                    className='block text-sm font-medium text-gray-700 mb-1'
+                  >
+                    Mobile No
+                  </label>
+                  <input
+                    id='mobile'
+                    type='tel'
+                    className='w-full text-gray-900 placeholder-gray-500 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow'
+                    value={formData.mobile}
+                    onChange={(e) =>
+                      setFormData({ ...formData, mobile: e.target.value })
+                    }
+                  />
+                </div>
+
                 {!showGuestInput ? (
                   <button
                     type='button'
@@ -471,7 +517,7 @@ export default function BookingPage() {
                     htmlFor='notes'
                     className='block text-sm font-medium text-gray-700 mb-1'
                   >
-                    Guest Notes
+                    Product you are Interested in
                   </label>
                   <textarea
                     id='notes'

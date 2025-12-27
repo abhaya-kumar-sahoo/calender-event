@@ -12,12 +12,18 @@ export default function Contacts() {
       contactsMap.set(booking.guestEmail, {
         name: booking.guestName,
         email: booking.guestEmail,
+        mobile: booking.guestMobile || '-',
         lastMeeting: booking.startTime,
         totalMeetings: 1,
       });
     } else {
       const contact = contactsMap.get(booking.guestEmail);
       contact.totalMeetings += 1;
+      if (!contact.mobile || contact.mobile === '-') {
+        if (booking.guestMobile) {
+          contact.mobile = booking.guestMobile;
+        }
+      }
       if (new Date(booking.startTime) > new Date(contact.lastMeeting)) {
         contact.lastMeeting = booking.startTime;
       }
@@ -50,6 +56,7 @@ export default function Contacts() {
                         {contact.name}
                       </p>
                       <p className='text-sm text-gray-500'>{contact.email}</p>
+                      <p className='text-sm text-gray-500'>{contact.mobile}</p>
                     </div>
                   </div>
                 </div>
@@ -80,6 +87,7 @@ export default function Contacts() {
               <tr>
                 <th className='px-6 py-4'>Name</th>
                 <th className='px-6 py-4'>Email</th>
+                <th className='px-6 py-4'>Mobile</th>
                 <th className='px-6 py-4'>Last Meeting</th>
                 <th className='px-6 py-4 text-center'>Total Bookings</th>
               </tr>
@@ -99,6 +107,7 @@ export default function Contacts() {
                     </div>
                   </td>
                   <td className='px-6 py-4'>{contact.email}</td>
+                  <td className='px-6 py-4'>{contact.mobile}</td>
                   <td className='px-6 py-4 text-gray-500'>
                     {format(new Date(contact.lastMeeting), 'PPP')}
                   </td>

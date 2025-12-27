@@ -69,6 +69,7 @@ router.post('/bookings', async (req, res) => {
             eventId,
             guestName,
             guestEmail,
+            guestMobile, // Extract mobile
             additionalGuests,
             startTime,
             notes,
@@ -105,7 +106,7 @@ router.post('/bookings', async (req, res) => {
         try {
             const gEvent = await createCalendarEvent(host, {
                 title: `Meeting: ${guestName} - ${eventTitle}`,
-                notes: notes || '',
+                notes: `Mobile: ${guestMobile || 'N/A'}\n${notes || ''}`, // Append mobile to Google Calendar notes
                 startTime: startTime,
                 endTime: endTime.toISOString(),
                 guestEmail,
@@ -122,6 +123,7 @@ router.post('/bookings', async (req, res) => {
             userId: host._id,
             guestName,
             guestEmail,
+            guestMobile, // Save mobile to DB
             additionalGuests,
             startTime,
             endTime,
@@ -135,38 +137,78 @@ router.post('/bookings', async (req, res) => {
         const emailSubject = `Confirmation: ${eventTitle} with ${host.name}`;
         const allGuests = [guestEmail, ...(additionalGuests || [])];
 
-        const emailHtml = `
-      <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">Meeting Confirmed!</h2>
-        <p>You are scheduled for:</p>
-        <p><strong>Event:</strong> ${eventTitle}</p>
-        <p><strong>Host:</strong> ${host.name}</p>
-        <p><strong>Date & Time:</strong> ${new Date(startTime).toLocaleString(
-            'en-US',
-            { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' }
-        )} (IST)</p>
+        const formattedDate = new Date(startTime).toLocaleString('en-US', {
+            timeZone: 'Asia/Kolkata',
+            dateStyle: 'full',
+            timeStyle: 'short',
+        }); // e.g., "Sunday, January 4, 2026 at 9:30 AM"
+
+        // Format for Guest Email (Image 3 style)
+        // Extract time and date separately for cleaner formatting if needed
+        const guestEmailHtml = `
+      <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; color: #374151;">
+        <p>Hi ${guestName},</p>
+        <p>Your <strong>${eventTitle}</strong> with <strong>Heritage Lane and Co Furniture</strong> at <strong>${formattedDate} (Australian Eastern Time)</strong> is scheduled.</p>
         
-        ${meetingLink
-                ? `
-        <div style="margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
-            <p style="margin: 0; font-weight: bold;">Join via Google Meet:</p>
-            <a href="${meetingLink}" style="color: #2563eb; font-size: 16px;">${meetingLink}</a>
-        </div>`
-                : ''
-            }
-        
-        <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">This invitation was sent via Tesseract.</p>
+        <p style="margin-top: 20px;">Stay as long as you like, explore every detail, and experience how true craftsmanship feels in person.</p>
+        <p>Fall in love with the warmth of solid teak, hand-carved details, and timeless designs!</p>
+
+        <p style="margin-top: 20px;"><strong>Location:</strong> 1/22-30 Wallace Ave, Point Cook VIC 3030</p>
+
+        <h3 style="margin-top: 30px; font-size: 16px; font-weight: bold;">Your Answers:</h3>
+        <p><strong>Phone Number</strong><br>${guestMobile || 'N/A'}</p>
+        <p><strong>Product Interest</strong><br>${notes || 'N/A'}</p>
       </div>
     `;
 
+        // Format for Host Email (Image 1 style)
+        const hostEmailHtml = `
+      <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; color: #374151;">
+        <div style="text-align: center; margin-bottom: 20px;">
+             <!-- Placeholder for logo if needed -->
+        </div>
+        <hr style="border: 0; border-top: 1px dashed #d1d5db; margin: 20px 0;" />
+        
+        <p>Hi Heritage Lane and Co Furniture,</p>
+        <p>A new invitee has been scheduled.</p>
+
+        <div style="margin-top: 20px;">
+            <p style="margin-bottom: 4px; font-weight: bold;">Event Type:</p>
+            <p style="margin-top: 0;">${eventTitle}</p>
+        </div>
+
+        <div style="margin-top: 16px;">
+            <p style="margin-bottom: 4px; font-weight: bold;">Invitee:</p>
+            <p style="margin-top: 0;">${guestName}</p>
+        </div>
+
+        <div style="margin-top: 16px;">
+            <p style="margin-bottom: 4px; font-weight: bold;">Invitee Email:</p>
+            <p style="margin-top: 0;"><a href="mailto:${guestEmail}" style="color: #2563eb; text-decoration: none;">${guestEmail}</a></p>
+        </div>
+
+        <div style="margin-top: 16px;">
+            <p style="margin-bottom: 4px; font-weight: bold;">Event Date/Time:</p>
+            <p style="margin-top: 0;">${formattedDate} (Australian Eastern Time)</p>
+        </div>
+        
+         <div style="margin-top: 16px;">
+            <p style="margin-bottom: 4px; font-weight: bold;">Mobile:</p>
+            <p style="margin-top: 0;">${guestMobile || 'N/A'}</p>
+        </div>
+      </div>
+    `;
+
+        // Send to Guests
         allGuests.forEach((email) =>
-            sendConfirmationEmail(email, emailSubject, emailHtml)
+            sendConfirmationEmail(email, emailSubject, guestEmailHtml)
         );
 
+        // Send to Host
         sendConfirmationEmail(
             host.email,
             `New Booking: ${guestName} - ${eventTitle}`,
-            emailHtml
+            hostEmailHtml
         );
 
         res.json(booking);

@@ -7,6 +7,7 @@ const bookingSchema = new mongoose.Schema({
     duration: { type: Number }, // For quick meetings or snapshot
     guestName: { type: String, required: true },
     guestEmail: { type: String, required: true },
+    guestMobile: { type: String }, // Mobile number
     additionalGuests: [String],
     startTime: { type: Date, required: true },
     endTime: { type: Date, required: true },

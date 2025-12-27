@@ -105,7 +105,9 @@ export default function DashboardLayout() {
                 AS
               </div>
               <div className='text-sm'>
-                <p className='font-medium text-gray-900'>Abhaya K. Sahoo</p>
+                <p className='font-medium text-gray-900'>
+                  Heritage Lane & Co Furniture
+                </p>
                 <p className='text-gray-500 text-xs'>Host</p>
               </div>
             </div>
