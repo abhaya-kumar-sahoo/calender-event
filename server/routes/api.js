@@ -72,15 +72,31 @@ router.post('/bookings', async (req, res) => {
             additionalGuests,
             startTime,
             notes,
+            title,      // Optional, for quick meetings
+            duration    // Optional, for quick meetings
         } = req.body;
 
-        const eventType = await EventType.findById(eventId).populate('userId');
-        if (!eventType)
-            return res.status(404).json({ message: 'Event Type not found' });
+        let host, eventTitle, eventDuration;
 
-        const host = eventType.userId;
+        if (eventId) {
+            const eventType = await EventType.findById(eventId).populate('userId');
+            if (!eventType)
+                return res.status(404).json({ message: 'Event Type not found' });
+            host = eventType.userId;
+            eventTitle = eventType.title;
+            eventDuration = eventType.duration;
+        } else {
+            // Quick meeting flow: Must be authenticated to act as host
+            if (!req.user) {
+                return res.status(401).json({ message: 'Unauthorized: Host not authenticated for quick meeting' });
+            }
+            host = req.user;
+            eventTitle = title || 'Quick Meeting';
+            eventDuration = duration || 30;
+        }
+
         const endTime = new Date(
-            new Date(startTime).getTime() + eventType.duration * 60000
+            new Date(startTime).getTime() + eventDuration * 60000
         );
 
         let googleEventData = null;
@@ -88,7 +104,7 @@ router.post('/bookings', async (req, res) => {
 
         try {
             const gEvent = await createCalendarEvent(host, {
-                title: `Meeting: ${guestName} - ${eventType.title}`,
+                title: `Meeting: ${guestName} - ${eventTitle}`,
                 notes: notes || '',
                 startTime: startTime,
                 endTime: endTime.toISOString(),
@@ -102,7 +118,7 @@ router.post('/bookings', async (req, res) => {
         }
 
         const booking = await Booking.create({
-            eventId,
+            eventId: eventId || undefined,
             userId: host._id,
             guestName,
             guestEmail,
@@ -110,18 +126,20 @@ router.post('/bookings', async (req, res) => {
             startTime,
             endTime,
             notes,
+            title: eventTitle,
+            duration: eventDuration,
             googleEventId: googleEventData ? googleEventData.id : null,
             status: 'confirmed',
         });
 
-        const emailSubject = `Confirmation: ${eventType.title} with ${host.name}`;
+        const emailSubject = `Confirmation: ${eventTitle} with ${host.name}`;
         const allGuests = [guestEmail, ...(additionalGuests || [])];
 
         const emailHtml = `
       <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">Meeting Confirmed!</h2>
         <p>You are scheduled for:</p>
-        <p><strong>Event:</strong> ${eventType.title}</p>
+        <p><strong>Event:</strong> ${eventTitle}</p>
         <p><strong>Host:</strong> ${host.name}</p>
         <p><strong>Date & Time:</strong> ${new Date(startTime).toLocaleString(
             'en-US',
@@ -147,7 +165,7 @@ router.post('/bookings', async (req, res) => {
 
         sendConfirmationEmail(
             host.email,
-            `New Booking: ${guestName} - ${eventType.title}`,
+            `New Booking: ${guestName} - ${eventTitle}`,
             emailHtml
         );
 
@@ -172,12 +190,46 @@ router.put('/bookings/:id', isAuthenticated, async (req, res) => {
             { _id: req.params.id, userId: req.user._id },
             req.body,
             { new: true }
-        );
+        ).populate('userId'); // Ensure userId is populated to get host email
+
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
+
+        // Send cancellation email if status is changed to 'cancelled'
+        if (req.body.status === 'cancelled') {
+            const host = booking.userId;
+            const bookingTitle = booking.title || 'Meeting'; // Fallback if title not saved
+
+            const emailSubject = `Cancelled: ${bookingTitle} with ${host.name}`;
+            const emailHtml = `
+                <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto;">
+                    <h2 style="color: #dc2626;">Meeting Cancelled</h2>
+                    <p>The following meeting has been cancelled:</p>
+                    <p><strong>Event:</strong> ${bookingTitle}</p>
+                    <p><strong>Host:</strong> ${host.name}</p>
+                    <p><strong>Original Date & Time:</strong> ${new Date(booking.startTime).toLocaleString('en-US', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })} (IST)</p>
+                    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">This notification was sent via Calendly Clone.</p>
+                </div>
+             `;
+
+            // Send to guest
+            sendConfirmationEmail(booking.guestEmail, emailSubject, emailHtml);
+
+            // Send to associated guests
+            if (booking.additionalGuests && booking.additionalGuests.length > 0) {
+                booking.additionalGuests.forEach(email =>
+                    sendConfirmationEmail(email, emailSubject, emailHtml)
+                );
+            }
+
+            // Send to host
+            sendConfirmationEmail(host.email, `Cancelled: ${booking.guestName} - ${bookingTitle}`, emailHtml);
+        }
+
         res.json(booking);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: err.message });
     }
 });

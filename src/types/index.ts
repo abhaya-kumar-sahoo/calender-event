@@ -16,6 +16,8 @@ export interface Booking {
   startTime: string; // ISO date string
   notes?: string;
   status: 'confirmed' | 'cancelled';
+  title?: string;
+  duration?: number;
 }
 
 export type ViewMode = 'desktop' | 'mobile';

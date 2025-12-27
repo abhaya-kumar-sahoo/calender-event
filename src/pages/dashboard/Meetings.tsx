@@ -161,7 +161,7 @@ export default function Meetings() {
                           )}
                         </div>
                         <div className='text-sm font-medium text-gray-700 mt-0.5'>
-                          {eventType?.title || 'Unknown Event'}
+                          {booking.title || eventType?.title || 'Unknown Event'}
                         </div>
                         <div className='text-sm text-gray-500 flex items-center gap-1.5 mt-1'>
                           <User className='w-3.5 h-3.5' />
@@ -192,7 +192,7 @@ export default function Meetings() {
                     <div className='p-6 border-t border-gray-100 bg-white grid grid-cols-1 md:grid-cols-3 gap-8 animate-in slide-in-from-top-2 duration-200'>
                       {/* Left: Actions */}
                       <div className='space-y-4'>
-                        <button
+                        {/* <button
                           onClick={(e) => {
                             e.stopPropagation();
                             openRescheduleModal(booking.id, startDate);
@@ -201,7 +201,7 @@ export default function Meetings() {
                         >
                           <CalendarIcon className='w-4 h-4' />
                           Reschedule
-                        </button>
+                        </button> */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

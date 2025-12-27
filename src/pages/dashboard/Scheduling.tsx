@@ -5,9 +5,12 @@ import { Link } from 'react-router-dom';
 import Modal from '../../components/Modal';
 
 export default function Scheduling() {
-  const { events, addEvent, bookings, updateEvent } = useStore();
+  const { events, addEvent, bookings, updateEvent, addBooking } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'event-type' | 'quick-booking'>(
+    'event-type'
+  );
 
   const [formData, setFormData] = useState({
     title: '',
@@ -16,37 +19,48 @@ export default function Scheduling() {
     color: 'bg-purple-600',
   });
 
+  const [quickBookingData, setQuickBookingData] = useState({
+    eventId: '',
+    guestName: '',
+    guestEmail: '',
+    date: '',
+    time: '',
+    notes: '',
+    title: '',
+    duration: 30,
+  });
+
   const handleCopyLink = (slug: string) => {
     const url = `${window.location.origin}/book/${slug}`;
     navigator.clipboard.writeText(url);
     alert('Link copied to clipboard!');
   };
 
-  const hasBookings = (eventId: string) => {
-    return bookings.some(
-      (b) => b.eventId === eventId && b.status !== 'cancelled'
-    );
-  };
-
   const openCreateModal = () => {
     setEditingEventId(null);
+    setActiveTab('event-type');
     setFormData({
       title: '',
       duration: 30,
       description: '',
       color: 'bg-purple-600',
     });
+    setQuickBookingData({
+      eventId: events.length > 0 ? events[0].id : '',
+      guestName: '',
+      guestEmail: '',
+      date: '',
+      time: '',
+      notes: '',
+      title: '',
+      duration: 30,
+    });
     setIsModalOpen(true);
   };
 
   const openEditModal = (event: any) => {
-    if (hasBookings(event.id)) {
-      alert(
-        'This event type cannot be edited because it has active bookings associated with it.'
-      );
-      return;
-    }
     setEditingEventId(event.id);
+    setActiveTab('event-type');
     setFormData({
       title: event.title,
       duration: event.duration,
@@ -60,25 +74,59 @@ export default function Scheduling() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title) return;
-
     setIsSubmitting(true);
+
     try {
-      if (editingEventId) {
-        await updateEvent(editingEventId, {
-          ...formData,
-          slug: formData.title.toLowerCase().replace(/\s+/g, '-'),
-        });
+      if (activeTab === 'event-type') {
+        if (!formData.title) return;
+        if (editingEventId) {
+          await updateEvent(editingEventId, {
+            ...formData,
+            slug: formData.title.toLowerCase().replace(/\s+/g, '-'),
+          });
+        } else {
+          await addEvent({
+            ...formData,
+            slug: formData.title.toLowerCase().replace(/\s+/g, '-'),
+          });
+        }
       } else {
-        await addEvent({
-          ...formData,
-          slug: formData.title.toLowerCase().replace(/\s+/g, '-'),
-        });
+        // Quick Booking
+        if (
+          !quickBookingData.guestEmail ||
+          !quickBookingData.date ||
+          !quickBookingData.time
+        ) {
+          alert('Please fill in all required fields');
+          setIsSubmitting(false);
+          return;
+        }
+
+        // If eventId is selected, use it, otherwise use custom title/duration
+        const bookingPayload: any = {
+          guestName: quickBookingData.guestName,
+          guestEmail: quickBookingData.guestEmail,
+          startTime: new Date(
+            `${quickBookingData.date}T${quickBookingData.time}`
+          ).toISOString(),
+          notes: quickBookingData.notes,
+          additionalGuests: [],
+        };
+
+        if (quickBookingData.eventId) {
+          bookingPayload.eventId = quickBookingData.eventId;
+        } else {
+          bookingPayload.title = quickBookingData.title || 'Quick Meeting';
+          bookingPayload.duration = quickBookingData.duration || 30;
+        }
+
+        await addBooking(bookingPayload);
+        alert('Meeting scheduled successfully!');
       }
       setIsModalOpen(false);
     } catch (error) {
-      console.error('Error saving event:', error);
-      alert('Failed to save event. Please try again.');
+      console.error('Error saving:', error);
+      alert('Failed to save. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -107,13 +155,12 @@ export default function Scheduling() {
           className='bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full flex items-center gap-2 font-medium transition-colors'
         >
           <Plus className='w-4 h-4' />
-          New Event
+          Create
         </button>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
         {events.map((event) => {
-          const locked = hasBookings(event.id);
           return (
             <div
               key={event.id}
@@ -127,16 +174,8 @@ export default function Scheduling() {
                   </h3>
                   <button
                     onClick={() => openEditModal(event)}
-                    className={`p-1 rounded-full transition-colors ${
-                      locked
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                    }`}
-                    title={
-                      locked
-                        ? 'Cannot edit: Has active bookings'
-                        : 'Edit Event Type'
-                    }
+                    className='p-1 rounded-full transition-colors text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    title='Edit Event Type'
                   >
                     <Settings className='w-4 h-4' />
                   </button>
@@ -176,92 +215,306 @@ export default function Scheduling() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingEventId ? 'Edit Event Type' : 'Create New Event Type'}
+        title={
+          editingEventId
+            ? 'Edit Event Type'
+            : activeTab === 'event-type'
+            ? 'Create New Event Type'
+            : 'Quick Meeting'
+        }
       >
+        {!editingEventId && (
+          <div className='flex border-b border-gray-200 mb-4'>
+            <button
+              type='button'
+              onClick={() => setActiveTab('event-type')}
+              className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'event-type'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Event Type
+            </button>
+            <button
+              type='button'
+              onClick={() => setActiveTab('quick-booking')}
+              className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'quick-booking'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Quick Booking
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className='space-y-4'>
-          <div>
-            <label
-              htmlFor='title'
-              className='block text-sm font-medium text-gray-700 mb-1'
-            >
-              Event Title *
-            </label>
-            <input
-              id='title'
-              required
-              className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
-              placeholder='e.g. 15 Minute Discussion'
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor='duration'
-              className='block text-sm font-medium text-gray-700 mb-1'
-            >
-              Duration (minutes)
-            </label>
-            <select
-              id='duration'
-              className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white'
-              value={formData.duration}
-              onChange={(e) =>
-                setFormData({ ...formData, duration: parseInt(e.target.value) })
-              }
-            >
-              {[15, 30, 45, 60, 90, 120].map((m) => (
-                <option key={m} value={m}>
-                  {m} min
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor='description'
-              className='block text-sm font-medium text-gray-700 mb-1'
-            >
-              Description
-            </label>
-            <textarea
-              id='description'
-              rows={3}
-              className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none'
-              placeholder='Briefly describe what this event is about...'
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-            />
-          </div>
-
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
-              Color
-            </label>
-            <div className='flex gap-2 flex-wrap'>
-              {colors.map((c) => (
-                <button
-                  key={c.value}
-                  type='button'
-                  onClick={() => setFormData({ ...formData, color: c.value })}
-                  className={`w-8 h-8 rounded-full ${
-                    c.value
-                  } transition-transform ${
-                    formData.color === c.value
-                      ? 'ring-2 ring-offset-2 ring-gray-400 scale-110'
-                      : 'hover:scale-105'
-                  }`}
-                  title={c.label}
+          {activeTab === 'event-type' ? (
+            <>
+              <div>
+                <label
+                  htmlFor='title'
+                  className='block text-sm font-medium text-gray-700 mb-1'
+                >
+                  Event Title *
+                </label>
+                <input
+                  id='title'
+                  required
+                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                  placeholder='e.g. 15 Minute Discussion'
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                 />
-              ))}
-            </div>
-          </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor='duration'
+                  className='block text-sm font-medium text-gray-700 mb-1'
+                >
+                  Duration (minutes)
+                </label>
+                <select
+                  id='duration'
+                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white'
+                  value={formData.duration}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      duration: parseInt(e.target.value),
+                    })
+                  }
+                >
+                  {[15, 30, 45, 60, 90, 120].map((m) => (
+                    <option key={m} value={m}>
+                      {m} min
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor='description'
+                  className='block text-sm font-medium text-gray-700 mb-1'
+                >
+                  Description
+                </label>
+                <textarea
+                  id='description'
+                  rows={3}
+                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none'
+                  placeholder='Briefly describe what this event is about...'
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Color
+                </label>
+                <div className='flex gap-2 flex-wrap'>
+                  {colors.map((c) => (
+                    <button
+                      key={c.value}
+                      type='button'
+                      onClick={() =>
+                        setFormData({ ...formData, color: c.value })
+                      }
+                      className={`w-8 h-8 rounded-full ${
+                        c.value
+                      } transition-transform ${
+                        formData.color === c.value
+                          ? 'ring-2 ring-offset-2 ring-gray-400 scale-110'
+                          : 'hover:scale-105'
+                      }`}
+                      title={c.label}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            // Quick Booking Form
+            <>
+              <div className='flex gap-4'>
+                <div className='flex-1'>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    Meeting Title
+                  </label>
+                  <input
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                    placeholder='Quick Chat'
+                    value={quickBookingData.title || ''}
+                    onChange={(e) =>
+                      setQuickBookingData({
+                        ...quickBookingData,
+                        title: e.target.value,
+                        eventId: '',
+                      })
+                    }
+                  />
+                  <p className='text-xs text-gray-500 mt-1'>
+                    Leave blank to use an existing event type below (optional)
+                  </p>
+                </div>
+                <div className='w-1/3'>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    Duration (min)
+                  </label>
+                  <input
+                    type='number'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                    value={quickBookingData.duration || 30}
+                    onChange={(e) =>
+                      setQuickBookingData({
+                        ...quickBookingData,
+                        duration: parseInt(e.target.value),
+                        eventId: '',
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className='relative'>
+                <div
+                  className='absolute inset-0 flex items-center'
+                  aria-hidden='true'
+                >
+                  <div className='w-full border-t border-gray-300'></div>
+                </div>
+                <div className='relative flex justify-center'>
+                  <span className='px-2 bg-white text-sm text-gray-500'>
+                    OR Select Event Type
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <select
+                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white'
+                  value={quickBookingData.eventId}
+                  onChange={(e) =>
+                    setQuickBookingData({
+                      ...quickBookingData,
+                      eventId: e.target.value,
+                      title: '', // Clear title when picking event
+                      duration: 30, // Reset duration when picking event
+                    })
+                  }
+                >
+                  <option value=''>Select an event type (Optional)</option>
+                  {events.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.title} ({event.duration} min)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className='grid grid-cols-2 gap-4'>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    Guest Name *
+                  </label>
+                  <input
+                    required
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                    placeholder='Jane Doe'
+                    value={quickBookingData.guestName}
+                    onChange={(e) =>
+                      setQuickBookingData({
+                        ...quickBookingData,
+                        guestName: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    Guest Email *
+                  </label>
+                  <input
+                    required
+                    type='email'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                    placeholder='jane@example.com'
+                    value={quickBookingData.guestEmail}
+                    onChange={(e) =>
+                      setQuickBookingData({
+                        ...quickBookingData,
+                        guestEmail: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className='grid grid-cols-2 gap-4'>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    Date *
+                  </label>
+                  <input
+                    required
+                    type='date'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                    value={quickBookingData.date}
+                    onChange={(e) =>
+                      setQuickBookingData({
+                        ...quickBookingData,
+                        date: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    Time *
+                  </label>
+                  <input
+                    required
+                    type='time'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                    value={quickBookingData.time}
+                    onChange={(e) =>
+                      setQuickBookingData({
+                        ...quickBookingData,
+                        time: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  Notes
+                </label>
+                <textarea
+                  rows={2}
+                  className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none'
+                  placeholder='Any additional notes...'
+                  value={quickBookingData.notes}
+                  onChange={(e) =>
+                    setQuickBookingData({
+                      ...quickBookingData,
+                      notes: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </>
+          )}
 
           <div className='flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100'>
             <button
@@ -279,6 +532,8 @@ export default function Scheduling() {
             >
               {isSubmitting
                 ? 'Saving...'
+                : activeTab === 'quick-booking'
+                ? 'Schedule Meeting'
                 : editingEventId
                 ? 'Save Changes'
                 : 'Create Event Type'}
