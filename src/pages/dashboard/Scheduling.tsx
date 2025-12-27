@@ -56,23 +56,32 @@ export default function Scheduling() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) return;
 
-    if (editingEventId) {
-      updateEvent(editingEventId, {
-        ...formData,
-        slug: formData.title.toLowerCase().replace(/\s+/g, '-'),
-      });
-    } else {
-      addEvent({
-        ...formData,
-        slug: formData.title.toLowerCase().replace(/\s+/g, '-'),
-      });
+    setIsSubmitting(true);
+    try {
+      if (editingEventId) {
+        await updateEvent(editingEventId, {
+          ...formData,
+          slug: formData.title.toLowerCase().replace(/\s+/g, '-'),
+        });
+      } else {
+        await addEvent({
+          ...formData,
+          slug: formData.title.toLowerCase().replace(/\s+/g, '-'),
+        });
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error saving event:', error);
+      alert('Failed to save event. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsModalOpen(false);
   };
 
   const colors = [
@@ -258,15 +267,21 @@ export default function Scheduling() {
             <button
               type='button'
               onClick={() => setIsModalOpen(false)}
-              className='px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors'
+              disabled={isSubmitting}
+              className='px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50'
             >
               Cancel
             </button>
             <button
               type='submit'
-              className='px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors'
+              disabled={isSubmitting}
+              className='px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50'
             >
-              {editingEventId ? 'Save Changes' : 'Create Event Type'}
+              {isSubmitting
+                ? 'Saving...'
+                : editingEventId
+                ? 'Save Changes'
+                : 'Create Event Type'}
             </button>
           </div>
         </form>

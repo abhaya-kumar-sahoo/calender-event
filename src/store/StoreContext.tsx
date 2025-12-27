@@ -1,5 +1,13 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 import { Booking, EventType } from '../types';
+import {
+  useGetEventsQuery,
+  useGetBookingsQuery,
+  useAddEventMutation,
+  useUpdateEventMutation,
+  useAddBookingMutation,
+  useUpdateBookingMutation,
+} from './apiSlice';
 
 interface StoreContextType {
   events: EventType[];
@@ -10,105 +18,72 @@ interface StoreContextType {
   cancelBooking: (id: string) => void;
   updateBooking: (id: string, updates: Partial<Booking>) => void;
   updateEvent: (id: string, updates: Partial<EventType>) => void;
+  isLoading: boolean;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-const INITIAL_EVENTS: EventType[] = [
-  {
-    id: '1',
-    title: '30 Minute Meeting',
-    duration: 30,
-    description: 'A quick catch-up call.',
-    slug: '30-min-meeting',
-    color: 'bg-purple-600',
-  },
-  {
-    id: '2',
-    title: 'One-on-One',
-    duration: 60,
-    description: 'Deep dive session.',
-    slug: 'one-on-one',
-    color: 'bg-blue-600',
-  },
-  {
-    id: '3',
-    title: 'Quick Chat',
-    duration: 15,
-    description: 'Short sync.',
-    slug: 'quick-chat',
-    color: 'bg-pink-600',
-  },
-];
-
-const INITIAL_BOOKINGS: Booking[] = [
-  {
-    id: '1',
-    eventId: '1',
-    guestName: 'John Doe',
-    guestEmail: 'john@example.com',
-    startTime: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
-    notes: 'Looking forward to it!',
-    status: 'confirmed',
-  },
-];
-
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [events, setEvents] = useState<EventType[]>(() => {
-    const saved = localStorage.getItem('calendly-clone-events');
-    return saved ? JSON.parse(saved) : INITIAL_EVENTS;
-  });
+  // RTK Query Hooks
+  const { data: events = [], isLoading: eventsLoading } = useGetEventsQuery();
+  const { data: bookings = [], isLoading: bookingsLoading } =
+    useGetBookingsQuery();
 
-  const [bookings, setBookings] = useState<Booking[]>(() => {
-    const saved = localStorage.getItem('calendly-clone-bookings');
-    return saved ? JSON.parse(saved) : INITIAL_BOOKINGS;
-  });
+  const [addEventMutation] = useAddEventMutation();
+  const [updateEventMutation] = useUpdateEventMutation();
+  const [addBookingMutation] = useAddBookingMutation();
+  const [updateBookingMutation] = useUpdateBookingMutation();
 
-  useEffect(() => {
-    localStorage.setItem('calendly-clone-events', JSON.stringify(events));
-  }, [events]);
-
-  useEffect(() => {
-    localStorage.setItem('calendly-clone-bookings', JSON.stringify(bookings));
-  }, [bookings]);
-
-  const addBooking = (bookingData: Omit<Booking, 'id' | 'status'>) => {
-    const newBooking: Booking = {
-      ...bookingData,
-      id: Math.random().toString(36).substr(2, 9),
-      status: 'confirmed',
-    };
-    setBookings((prev) => [...prev, newBooking]);
-  };
-
-  const addEvent = (eventData: Omit<EventType, 'id'>) => {
-    const newEvent: EventType = {
-      ...eventData,
-      id: Math.random().toString(36).substr(2, 9),
-    };
-    setEvents((prev) => [...prev, newEvent]);
-  };
-
+  // NOTE: In a real app, this should fetch from API on-demand or use cached list
+  // For now, we'll try to find from the list we already fetched if possible
   const getEventBySlug = (slug: string) => {
     return events.find((e) => e.slug === slug);
   };
 
-  const cancelBooking = (id: string) => {
-    setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, status: 'cancelled' } : b))
-    );
+  const addEvent = async (eventData: Omit<EventType, 'id'>) => {
+    try {
+      return await addEventMutation(eventData).unwrap();
+    } catch (error) {
+      console.error('Failed to add event', error);
+      throw error;
+    }
   };
 
-  const updateBooking = (id: string, updates: Partial<Booking>) => {
-    setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, ...updates } : b))
-    );
+  const updateEvent = async (id: string, updates: Partial<EventType>) => {
+    try {
+      return await updateEventMutation({ id, updates }).unwrap();
+    } catch (error) {
+      console.error('Failed to update event', error);
+      throw error;
+    }
   };
 
-  const updateEvent = (id: string, updates: Partial<EventType>) => {
-    setEvents((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, ...updates } : e))
-    );
+  const addBooking = async (bookingData: Omit<Booking, 'id' | 'status'>) => {
+    try {
+      await addBookingMutation(bookingData).unwrap();
+    } catch (error) {
+      console.error('Failed to add booking', error);
+    }
+  };
+
+  const cancelBooking = async (id: string) => {
+    try {
+      await updateBookingMutation({
+        id,
+        updates: { status: 'cancelled' },
+      }).unwrap();
+    } catch (error) {
+      console.error('Failed to cancel booking', error);
+    }
+  };
+
+  const updateBooking = async (id: string, updates: Partial<Booking>) => {
+    try {
+      await updateBookingMutation({ id, updates }).unwrap();
+    } catch (error) {
+      console.error('Failed to update booking', error);
+      throw error;
+    }
   };
 
   return (
@@ -122,6 +97,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         cancelBooking,
         updateBooking,
         updateEvent,
+        isLoading: eventsLoading || bookingsLoading,
       }}
     >
       {children}

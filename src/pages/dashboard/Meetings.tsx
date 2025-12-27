@@ -16,6 +16,7 @@ export default function Meetings() {
   const { bookings, events, cancelBooking, updateBooking } = useStore();
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  console.log({ bookings });
 
   // Modal State
   const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
@@ -24,6 +25,8 @@ export default function Meetings() {
     currentDate: Date;
   } | null>(null);
   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filteredBookings = bookings
     .filter((booking) => {
@@ -36,10 +39,17 @@ export default function Meetings() {
         new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     );
 
-  const performCancel = () => {
+  const performCancel = async () => {
     if (bookingToCancel) {
-      cancelBooking(bookingToCancel);
-      setBookingToCancel(null);
+      setIsSubmitting(true);
+      try {
+        await cancelBooking(bookingToCancel);
+        setBookingToCancel(null);
+      } catch (error) {
+        alert('Failed to cancel meeting.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -51,17 +61,24 @@ export default function Meetings() {
     });
   };
 
-  const performReschedule = () => {
+  const performReschedule = async () => {
     if (bookingToReschedule && rescheduleData.date && rescheduleData.time) {
       const newDateTime = new Date(
         `${rescheduleData.date}T${rescheduleData.time}`
       );
       if (!isNaN(newDateTime.getTime())) {
-        updateBooking(bookingToReschedule.id, {
-          startTime: newDateTime.toISOString(),
-          status: 'confirmed',
-        });
-        setBookingToReschedule(null);
+        setIsSubmitting(true);
+        try {
+          await updateBooking(bookingToReschedule.id, {
+            startTime: newDateTime.toISOString(),
+            status: 'confirmed',
+          });
+          setBookingToReschedule(null);
+        } catch (error) {
+          alert('Failed to reschedule meeting.');
+        } finally {
+          setIsSubmitting(false);
+        }
       } else {
         alert('Invalid date/time format');
       }
@@ -266,15 +283,17 @@ export default function Meetings() {
         <div className='flex justify-end gap-3'>
           <button
             onClick={() => setBookingToCancel(null)}
-            className='px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors'
+            disabled={isSubmitting}
+            className='px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50'
           >
             No, Keep it
           </button>
           <button
             onClick={performCancel}
-            className='px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors'
+            disabled={isSubmitting}
+            className='px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50'
           >
-            Yes, Cancel Meeting
+            {isSubmitting ? 'Cancelling...' : 'Yes, Cancel Meeting'}
           </button>
         </div>
       </Modal>
@@ -318,15 +337,17 @@ export default function Meetings() {
           <div className='flex justify-end gap-3 mt-6'>
             <button
               onClick={() => setBookingToReschedule(null)}
-              className='px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors'
+              disabled={isSubmitting}
+              className='px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50'
             >
               Cancel
             </button>
             <button
               onClick={performReschedule}
-              className='px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors'
+              disabled={isSubmitting}
+              className='px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50'
             >
-              Confirm Reschedule
+              {isSubmitting ? 'Rescheduling...' : 'Confirm Reschedule'}
             </button>
           </div>
         </div>
