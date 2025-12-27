@@ -12,7 +12,6 @@ import {
   eachDayOfInterval,
   isSameMonth,
   isSameDay,
-  isToday,
   isBefore,
   startOfToday,
 } from 'date-fns';
@@ -154,6 +153,15 @@ export default function BookingPage() {
   // --- Views ---
 
   if (step === 'confirmation') {
+    let endTimeFormatted = '';
+    if (selectedTime) {
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      const tempDate = new Date();
+      tempDate.setHours(hours, minutes);
+      const endDate = new Date(tempDate.getTime() + event.duration * 60000);
+      endTimeFormatted = format(endDate, 'H:mm');
+    }
+
     return (
       <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
         <div className='bg-white max-w-lg w-full rounded-lg shadow-lg border border-gray-100 p-8 text-center'>
@@ -176,16 +184,7 @@ export default function BookingPage() {
             </div>
             <div className='flex items-center gap-2 text-gray-600 text-sm'>
               <Clock className='w-4 h-4' />
-              {selectedTime} -{' '}
-              {selectedTime &&
-                format(
-                  new Date(
-                    new Date().setHours(...selectedTime.split(':').map(Number))
-                  ).getTime() +
-                    event.duration * 60000,
-                  'H:mm'
-                )}{' '}
-              ({event.duration} min)
+              {selectedTime} - {endTimeFormatted} ({event.duration} min)
             </div>
             {guestEmails.length > 0 && (
               <div className='mt-3 text-sm text-gray-600 border-t border-gray-200 pt-2'>
@@ -287,7 +286,7 @@ export default function BookingPage() {
                 </div>
 
                 <div className='grid grid-cols-7 gap-1'>
-                  {calendarDays.map((day, idx) => {
+                  {calendarDays.map((day) => {
                     const isSelected = selectedDate
                       ? isSameDay(day, selectedDate)
                       : false;

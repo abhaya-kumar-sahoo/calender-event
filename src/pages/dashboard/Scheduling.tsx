@@ -8,7 +8,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
 
 export default function Scheduling() {
-  const { events, addEvent, bookings, updateEvent, addBooking } = useStore();
+  const { events, addEvent, updateEvent, addBooking } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'event-type' | 'quick-booking'>(
@@ -473,7 +473,7 @@ export default function Scheduling() {
                         ? new Date(quickBookingData.date)
                         : null
                     }
-                    onChange={(date) =>
+                    onChange={(date: any) =>
                       setQuickBookingData({
                         ...quickBookingData,
                         date: date ? format(date, 'yyyy-MM-dd') : '',
@@ -500,7 +500,7 @@ export default function Scheduling() {
                           )
                         : null
                     }
-                    onChange={(date) =>
+                    onChange={(date: any) =>
                       setQuickBookingData({
                         ...quickBookingData,
                         time: date ? format(date, 'HH:mm') : '',

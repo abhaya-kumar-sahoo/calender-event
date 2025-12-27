@@ -1,14 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../../store/StoreContext';
 import { format } from 'date-fns';
-import {
-  User,
-  Calendar as CalendarIcon,
-  XCircle,
-  Edit2,
-  Filter,
-  RefreshCcw,
-} from 'lucide-react';
+import { User, XCircle } from 'lucide-react';
 import clsx from 'clsx';
 import Modal from '../../components/Modal';
 
@@ -53,13 +46,13 @@ export default function Meetings() {
     }
   };
 
-  const openRescheduleModal = (id: string, date: Date) => {
-    setBookingToReschedule({ id, currentDate: date });
-    setRescheduleData({
-      date: format(date, 'yyyy-MM-dd'),
-      time: format(date, 'HH:mm'),
-    });
-  };
+  // const openRescheduleModal = (id: string, date: Date) => {
+  //   setBookingToReschedule({ id, currentDate: date });
+  //   setRescheduleData({
+  //     date: format(date, 'yyyy-MM-dd'),
+  //     time: format(date, 'HH:mm'),
+  //   });
+  // };
 
   const performReschedule = async () => {
     if (bookingToReschedule && rescheduleData.date && rescheduleData.time) {
