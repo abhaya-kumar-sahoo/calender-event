@@ -9,6 +9,7 @@ import Meetings from './pages/dashboard/Meetings';
 import Contacts from './pages/dashboard/Contacts';
 import BookingPage from './pages/booking/BookingPage';
 import Login from './pages/Login';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 // Protected Route Guard
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -54,6 +55,7 @@ function App() {
 
           {/* Public Booking Page */}
           <Route path='/book/:id' element={<BookingPage />} />
+          <Route path='/privacy-policy' element={<PrivacyPolicy />} />
         </Routes>
       </StoreProvider>
     </Provider>
