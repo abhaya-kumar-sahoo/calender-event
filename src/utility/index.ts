@@ -1,6 +1,6 @@
 export const isTesting = false;
 
-export const baseUrl = 'https://calender-event-6p9k.onrender.com';
+export const baseUrl = 'https://appointmentbackend.equartistech.com';
 
 //   ? 'http://localhost:5001'
-//   : 'https://calender-event-6p9k.onrender.com';
+//   : 'https://appointmentbackend.equartistech.com';
