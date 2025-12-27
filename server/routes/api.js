@@ -49,9 +49,9 @@ router.put('/events/:id', isAuthenticated, async (req, res) => {
 });
 
 // --- Public Access for Booking Page ---
-router.get('/public/events/:slug', async (req, res) => {
+router.get('/public/events/:id', async (req, res) => {
     try {
-        const event = await EventType.findOne({ slug: req.params.slug }).populate(
+        const event = await EventType.findById(req.params.id).populate(
             'userId',
             'name email picture'
         );

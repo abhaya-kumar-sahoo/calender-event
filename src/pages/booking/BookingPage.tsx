@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store/StoreContext';
+import { useGetPublicEventQuery } from '../../store/apiSlice';
 import {
   format,
   addMonths,
@@ -30,9 +31,11 @@ import clsx from 'clsx';
 type BookingStep = 'date-time' | 'form' | 'confirmation';
 
 export default function BookingPage() {
-  const { eventSlug } = useParams();
-  const { getEventBySlug, addBooking } = useStore();
-  const event = getEventBySlug(eventSlug || '');
+  const { id } = useParams();
+  const { addBooking } = useStore();
+  const { data: event, isLoading } = useGetPublicEventQuery(id || '', {
+    skip: !id,
+  });
 
   const [step, setStep] = useState<BookingStep>('date-time');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -48,6 +51,14 @@ export default function BookingPage() {
   const [showGuestInput, setShowGuestInput] = useState(false);
   const [guestEmails, setGuestEmails] = useState<string[]>([]);
   const [currentGuestInput, setCurrentGuestInput] = useState('');
+
+  if (isLoading) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'></div>
+      </div>
+    );
+  }
 
   if (!event) {
     return (

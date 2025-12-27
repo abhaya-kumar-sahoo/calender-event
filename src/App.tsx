@@ -53,7 +53,7 @@ function App() {
           </Route>
 
           {/* Public Booking Page */}
-          <Route path='/book/:eventSlug' element={<BookingPage />} />
+          <Route path='/book/:id' element={<BookingPage />} />
         </Routes>
       </StoreProvider>
     </Provider>

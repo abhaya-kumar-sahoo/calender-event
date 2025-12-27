@@ -33,8 +33,8 @@ export default function Scheduling() {
     duration: 30,
   });
 
-  const handleCopyLink = (slug: string) => {
-    const url = `${window.location.origin}/book/${slug}`;
+  const handleCopyLink = (id: string) => {
+    const url = `${window.location.origin}/book/${id}`;
     navigator.clipboard.writeText(url);
     alert('Link copied to clipboard!');
   };
@@ -194,14 +194,14 @@ export default function Scheduling() {
 
                 <div className='flex items-center justify-between pt-4 border-t border-gray-100'>
                   <button
-                    onClick={() => handleCopyLink(event.slug)}
+                    onClick={() => handleCopyLink(event.id)}
                     className='text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1'
                   >
                     <Copy className='w-4 h-4' />
                     Copy Link
                   </button>
                   <Link
-                    to={`/book/${event.slug}`}
+                    to={`/book/${event.id}`}
                     target='_blank'
                     className='text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-50'
                     title='View Booking Page'

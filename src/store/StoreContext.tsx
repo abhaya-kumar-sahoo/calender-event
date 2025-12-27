@@ -14,7 +14,7 @@ interface StoreContextType {
   bookings: Booking[];
   addBooking: (booking: Omit<Booking, 'id' | 'status'>) => void;
   addEvent: (event: Omit<EventType, 'id'>) => void;
-  getEventBySlug: (slug: string) => EventType | undefined;
+  // getEventBySlug removed as we fetch by ID publicly now
   cancelBooking: (id: string) => void;
   updateBooking: (id: string, updates: Partial<Booking>) => void;
   updateEvent: (id: string, updates: Partial<EventType>) => void;
@@ -34,11 +34,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [addBookingMutation] = useAddBookingMutation();
   const [updateBookingMutation] = useUpdateBookingMutation();
 
-  // NOTE: In a real app, this should fetch from API on-demand or use cached list
-  // For now, we'll try to find from the list we already fetched if possible
-  const getEventBySlug = (slug: string) => {
-    return events.find((e) => e.slug === slug);
-  };
+  // getEventBySlug removed
 
   const addEvent = async (eventData: Omit<EventType, 'id'>) => {
     try {
@@ -93,7 +89,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         bookings,
         addBooking,
         addEvent,
-        getEventBySlug,
+        // getEventBySlug,
         cancelBooking,
         updateBooking,
         updateEvent,

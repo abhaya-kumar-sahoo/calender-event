@@ -25,8 +25,8 @@ export const apiSlice = createApi({
       query: () => '/api/events',
       providesTags: ['Events'],
     }),
-    getEventBySlug: builder.query<EventType, string>({
-      query: (slug) => `/api/public/events/${slug}`,
+    getPublicEvent: builder.query<EventType, string>({
+      query: (id) => `/api/public/events/${id}`,
     }),
     addEvent: builder.mutation<EventType, Partial<EventType>>({
       query: (body) => ({
@@ -86,7 +86,7 @@ export const {
   useCheckAuthQuery,
   useLogoutMutation,
   useGetEventsQuery,
-  useGetEventBySlugQuery,
+  useGetPublicEventQuery,
   useAddEventMutation,
   useUpdateEventMutation,
   useGetBookingsQuery,
