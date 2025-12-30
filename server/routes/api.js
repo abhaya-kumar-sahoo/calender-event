@@ -5,7 +5,12 @@ const Booking = require('../models/Booking');
 const User = require('../models/User');
 const { createCalendarEvent } = require('../utils/googleCalendar');
 const { sendConfirmationEmail } = require('../utils/email');
+const { getGuestEmailHtml, getHostEmailHtml, getOtpEmailHtml } = require('../utils/emailTemplates');
 const { upload } = require('../utils/s3');
+
+// Simple in-memory storage for OTPs (In production, use Redis or similar)
+const otpStore = new Map();
+const OTP_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
 const isAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) return next();
@@ -115,7 +120,8 @@ router.post('/bookings', async (req, res) => {
             notes,
             title,      // Optional, for quick meetings
             duration,    // Optional, for quick meetings
-            timezone     // Guest's selected timezone
+            timezone,     // Guest's selected timezone
+            selectedLink
         } = req.body;
 
         let host, eventTitle, eventDuration, eventData = {};
@@ -182,6 +188,7 @@ router.post('/bookings', async (req, res) => {
             ...eventData,
             googleEventId: googleEventData ? googleEventData.id : null,
             timezone,
+            selectedLink,
             status: 'confirmed',
         });
 
@@ -194,80 +201,29 @@ router.post('/bookings', async (req, res) => {
             timeStyle: 'short',
         });
 
-        // Format for Guest Email (Image 3 style)
-        // Extract time and date separately for cleaner formatting if needed
-        const guestEmailHtml = `
-      <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; color: #374151;">
-        <p>Hi ${guestName},</p>
-        <p>Your <strong>${eventTitle}</strong> with <strong>Heritage Lane and Co Furniture</strong> at <strong>${formattedDate} (${timezone || 'Asia/Kolkata'})</strong> is scheduled.</p>
-        
-        <p style="margin-top: 20px;">Stay as long as you like, explore every detail, and experience how true craftsmanship feels in person.</p>
-        <p>Fall in love with the warmth of solid teak, hand-carved details, and timeless designs!</p>
+        // Format for Guest Email
+        const guestEmailHtml = getGuestEmailHtml({
+            guestName,
+            eventTitle,
+            formattedDate,
+            timezone,
+            eventData,
+            meetingLink,
+            guestMobile,
+            notes
+        });
 
-        ${eventData.location === 'gmeet' && meetingLink ? `
-        <div style="margin-top: 20px; padding: 15px; background-color: #f0f7ff; border-radius: 12px; border: 1px solid #dbeafe;">
-          <p style="margin: 0 0 8px 0; font-weight: bold; color: #1e40af;">Google Meet Link:</p>
-          <a href="${meetingLink}" style="color: #2563eb; text-decoration: none; font-weight: 500;">${meetingLink}</a>
-        </div>
-        ` : `
-        <p style="margin-top: 20px;"><strong>Location:</strong> ${eventData.locationAddress || '1/22-30 Wallace Ave, Point Cook VIC 3030'}</p>
-        `}
-
-        <h3 style="margin-top: 30px; font-size: 16px; font-weight: bold;">Your Answers:</h3>
-        <p><strong>Phone Number</strong><br>${guestMobile || 'N/A'}</p>
-        <p><strong>Product Interest</strong><br>${notes || 'N/A'}</p>
-      </div>
-    `;
-
-        // Format for Host Email (Image 1 style)
-        const hostEmailHtml = `
-      <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; color: #374151;">
-        <div style="text-align: center; margin-bottom: 20px;">
-             <!-- Placeholder for logo if needed -->
-        </div>
-        <hr style="border: 0; border-top: 1px dashed #d1d5db; margin: 20px 0;" />
-        
-        <p>Hi Heritage Lane and Co Furniture,</p>
-        <p>A new invitee has been scheduled.</p>
-
-        <div style="margin-top: 20px;">
-            <p style="margin-bottom: 4px; font-weight: bold;">Event Type:</p>
-            <p style="margin-top: 0;">${eventTitle}</p>
-        </div>
-
-        <div style="margin-top: 16px;">
-            <p style="margin-bottom: 4px; font-weight: bold;">Invitee:</p>
-            <p style="margin-top: 0;">${guestName}</p>
-        </div>
-
-        <div style="margin-top: 16px;">
-            <p style="margin-bottom: 4px; font-weight: bold;">Invitee Email:</p>
-            <p style="margin-top: 0;"><a href="mailto:${guestEmail}" style="color: #2563eb; text-decoration: none;">${guestEmail}</a></p>
-        </div>
-
-        <div style="margin-top: 16px;">
-            <p style="margin-bottom: 4px; font-weight: bold;">Event Date/Time:</p>
-            <p style="margin-top: 0;">${formattedDate} (Australian Eastern Time)</p>
-        </div>
-        
-         <div style="margin-top: 16px;">
-            <p style="margin-bottom: 4px; font-weight: bold;">Mobile:</p>
-            <p style="margin-top: 0;">${guestMobile || 'N/A'}</p>
-        </div>
-
-        ${eventData.location === 'gmeet' && meetingLink ? `
-        <div style="margin-top: 20px; padding: 15px; background-color: #f0f7ff; border-radius: 12px; border: 1px solid #dbeafe;">
-          <p style="margin: 0 0 8px 0; font-weight: bold; color: #1e40af;">Google Meet Link:</p>
-          <a href="${meetingLink}" style="color: #2563eb; text-decoration: none; font-weight: 500;">${meetingLink}</a>
-        </div>
-        ` : `
-        <div style="margin-top: 16px;">
-            <p style="margin-bottom: 4px; font-weight: bold;">Location:</p>
-            <p style="margin-top: 0;">${eventData.locationAddress || '1/22-30 Wallace Ave, Point Cook VIC 3030'}</p>
-        </div>
-        `}
-      </div>
-    `;
+        // Format for Host Email
+        const hostEmailHtml = getHostEmailHtml({
+            hostName: host.name,
+            guestName,
+            guestEmail,
+            eventTitle,
+            formattedDate,
+            guestMobile,
+            eventData,
+            meetingLink
+        });
 
         // Send to Guests
         allGuests.forEach((email) =>
@@ -380,5 +336,60 @@ router.delete('/bookings/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+
+// --- OTP Verification ---
+router.post('/otp/send', async (req, res) => {
+    try {
+        const { email, eventId } = req.body;
+        if (!email) return res.status(400).json({ message: 'Email is required' });
+
+        // Find the host to use their OAuth connection
+        let hostUser = null;
+        if (eventId) {
+            const event = await EventType.findById(eventId).populate('userId');
+            if (event && event.userId) {
+                hostUser = event.userId;
+            }
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        otpStore.set(email, { otp, expires: Date.now() + OTP_EXPIRY });
+
+        const html = getOtpEmailHtml(otp);
+
+        const mailOptions = { to: email, subject: 'Your Verification Code', html };
+
+        // Send via primary SMTP as requested
+        await sendConfirmationEmail(mailOptions.to, mailOptions.subject, mailOptions.html);
+        res.json({ message: 'OTP sent successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/otp/verify', async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        const storedData = otpStore.get(email);
+
+        if (!storedData) {
+            return res.status(400).json({ message: 'OTP not found or expired' });
+        }
+
+        if (Date.now() > storedData.expires) {
+            otpStore.delete(email);
+            return res.status(400).json({ message: 'OTP expired' });
+        }
+
+        if (storedData.otp === otp) {
+            otpStore.delete(email);
+            res.json({ success: true, message: 'Email verified successfully' });
+        } else {
+            res.status(400).json({ success: false, message: 'Invalid OTP' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 module.exports = router;

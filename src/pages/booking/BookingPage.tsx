@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useStore } from "../../store/StoreContext";
-import { useGetPublicEventQuery } from "../../store/apiSlice";
+import {
+  useGetPublicEventQuery,
+  useSendOtpMutation,
+  useVerifyOtpMutation
+} from "../../store/apiSlice";
 import {
   format,
   addMonths,
@@ -31,7 +35,7 @@ import clsx from "clsx";
 import logo from "../../assets/logo.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { getTimezones, formatTimeInTimezone } from "../../utils/timezoneData";
-import { Search } from "lucide-react";
+import { Search, CheckCircle2, AlertCircle } from "lucide-react";
 
 type BookingStep = "date-time" | "form" | "confirmation";
 const getTimezoneLongName = (tz: string): string => {
@@ -52,6 +56,9 @@ export default function BookingPage() {
   const { data: event, isLoading } = useGetPublicEventQuery(id || "", {
     skip: !id,
   });
+
+  const [sendOtp] = useSendOtpMutation();
+  const [verifyOtp] = useVerifyOtpMutation();
   // console.log({ event });
 
   const [step, setStep] = useState<BookingStep>("date-time");
@@ -72,7 +79,15 @@ export default function BookingPage() {
     email: "",
     mobile: "",
     notes: "",
+    selectedLink: "",
   });
+
+  // OTP Verification State
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpInput, setOtpInput] = useState("");
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [otpError, setOtpError] = useState("");
 
   const [showGuestInput, setShowGuestInput] = useState(false);
   const [guestEmails, setGuestEmails] = useState<string[]>([]);
@@ -229,6 +244,7 @@ export default function BookingPage() {
       startTime: new Date(isoStr).toISOString(),
       notes: formData.notes,
       timezone: selectedTimezone,
+      selectedLink: formData.selectedLink,
     });
 
     setStep("confirmation");
@@ -581,26 +597,74 @@ export default function BookingPage() {
                       setFormData({ ...formData, email: e.target.value })
                     }
                   />
+                  {event.emailVerify && !isEmailVerified && (
+                    <div className="mt-2">
+                      {!otpSent ? (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!formData.email) return alert("Please enter email first");
+                            setIsVerifying(true);
+                            try {
+                              await sendOtp({ email: formData.email, eventId: event.id }).unwrap();
+                              setOtpSent(true);
+                              setOtpError("");
+                            } catch (err: any) {
+                              alert(err.data?.message || "Failed to send OTP");
+                            } finally {
+                              setIsVerifying(false);
+                            }
+                          }}
+                          disabled={isVerifying}
+                          className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-all"
+                        >
+                          {isVerifying ? "Sending..." : "Verify Email"}
+                        </button>
+                      ) : (
+                        <div className="flex gap-2 items-center">
+                          <input
+                            placeholder="Enter Code"
+                            className="w-24 px-3 py-1.5 text-black text-sm rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500"
+                            value={otpInput}
+                            onChange={(e) => setOtpInput(e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setIsVerifying(true);
+                              setOtpError("");
+                              try {
+                                await verifyOtp({ email: formData.email, otp: otpInput }).unwrap();
+                                setIsEmailVerified(true);
+                                setOtpSent(false);
+                              } catch (err: any) {
+                                setOtpError(err.data?.message || "Invalid code");
+                              } finally {
+                                setIsVerifying(false);
+                              }
+                            }}
+                            className="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg transition-all"
+                          >
+                            Verify
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setOtpSent(false)}
+                            className="text-[10px] text-gray-500 hover:text-gray-700"
+                          >
+                            Edit Email
+                          </button>
+                        </div>
+                      )}
+                      {otpError && <p className="text-[10px] text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {otpError}</p>}
+                    </div>
+                  )}
+                  {isEmailVerified && (
+                    <p className="text-[10px] text-green-600 mt-1 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Email Verified
+                    </p>
+                  )}
                 </div>
-
-                <div>
-                  <label
-                    htmlFor="mobile"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Mobile No
-                  </label>
-                  <input
-                    id="mobile"
-                    type="tel"
-                    className="w-full text-gray-900 placeholder-gray-500 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow"
-                    value={formData.mobile}
-                    onChange={(e) =>
-                      setFormData({ ...formData, mobile: e.target.value })
-                    }
-                  />
-                </div>
-
                 {!showGuestInput ? (
                   <button
                     type="button"
@@ -657,6 +721,29 @@ export default function BookingPage() {
                     </p>
                   </div>
                 )}
+                {(event.phoneVerify || event.enablePhoneCheck) && (
+                  <div>
+                    <label
+                      htmlFor="mobile"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      {event.enablePhoneCheck ? "Mobile No *" : "Mobile No"}
+                    </label>
+                    <input
+                      id="mobile"
+                      type="tel"
+                      required={event.enablePhoneCheck}
+                      className="w-full text-gray-900 placeholder-gray-500 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow"
+                      value={formData.mobile}
+                      onChange={(e) =>
+                        setFormData({ ...formData, mobile: e.target.value })
+                      }
+                    />
+                  </div>
+                )}
+
+
+
 
                 <div>
                   <label
@@ -675,6 +762,47 @@ export default function BookingPage() {
                     }
                   />
                 </div>
+                {event.repeaterFields && event.repeaterFields.length > 0 && (
+                  <div>
+                    <label
+                      htmlFor="selectedLink"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Additional Selection (Optional)
+                    </label>
+                    <select
+                      id="selectedLink"
+                      className="w-full text-gray-900 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow bg-white"
+                      value={formData.selectedLink}
+                      onChange={(e) => setFormData({ ...formData, selectedLink: e.target.value })}
+                    >
+                      <option value="">Select an option</option>
+                      {event.repeaterFields.map((link: any, idx: number) => (
+                        <option key={idx} value={link.name}>
+                          {link.name} (View Link)
+                        </option>
+                      ))}
+                    </select>
+                    {formData.selectedLink && (
+                      <div className="mt-2">
+                        {(() => {
+                          const selected = event.repeaterFields.find((l: any) => l.name === formData.selectedLink);
+                          return selected?.url ? (
+                            <a
+                              href={selected.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              View {selected.name} resource
+                            </a>
+                          ) : null;
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex items-start gap-3 mt-4">
                   <div className="flex items-center h-5">
@@ -701,15 +829,15 @@ export default function BookingPage() {
 
                 <button
                   type="submit"
-                  disabled={!agreedToTerms}
+                  disabled={!agreedToTerms || (event.emailVerify && !isEmailVerified)}
                   className={clsx(
                     "w-full font-bold py-3 px-4 rounded-full mt-4 transition-all active:scale-[0.98]",
-                    agreedToTerms
+                    agreedToTerms && (!event.emailVerify || isEmailVerified)
                       ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   )}
                 >
-                  Schedule Event
+                  {event.emailVerify && !isEmailVerified ? "Verify Email to Continue" : "Schedule Event"}
                 </button>
               </form>
             </div>

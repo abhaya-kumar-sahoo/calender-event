@@ -94,6 +94,21 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["Bookings"],
     }),
+    // OTP
+    sendOtp: builder.mutation<any, { email: string; eventId?: string }>({
+      query: (body) => ({
+        url: "/api/otp/send",
+        method: "POST",
+        body,
+      }),
+    }),
+    verifyOtp: builder.mutation<any, { email: string; otp: string }>({
+      query: (body) => ({
+        url: "/api/otp/verify",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -110,4 +125,6 @@ export const {
   useAddBookingMutation,
   useUpdateBookingMutation,
   useDeleteBookingMutation,
+  useSendOtpMutation,
+  useVerifyOtpMutation,
 } = apiSlice;

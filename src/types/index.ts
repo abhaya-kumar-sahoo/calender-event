@@ -37,6 +37,7 @@ export interface Booking {
   eventImage?: string;
   availability?: string;
   timezone?: string;
+  selectedLink?: string;
 }
 
 export type ViewMode = "desktop" | "mobile";

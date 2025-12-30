@@ -21,6 +21,7 @@ const bookingSchema = new mongoose.Schema({
     status: { type: String, enum: ['confirmed', 'cancelled'], default: 'confirmed' },
     googleEventId: String,
     timezone: String,
+    selectedLink: String,
 }, {
     timestamps: true,
     toJSON: {
