@@ -10,6 +10,7 @@ import Contacts from './pages/dashboard/Contacts';
 import BookingPage from './pages/booking/BookingPage';
 import Login from './pages/Login';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Profile from './pages/dashboard/Profile';
 
 // Protected Route Guard
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -51,6 +52,7 @@ function App() {
             <Route index element={<Scheduling />} />
             <Route path='meetings' element={<Meetings />} />
             <Route path='contacts' element={<Contacts />} />
+            <Route path='profile' element={<Profile />} />
           </Route>
 
           {/* Public Booking Page */}

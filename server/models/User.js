@@ -5,6 +5,11 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     name: String,
     picture: String,
+    phoneNumber: String,
+    address: String,
+    bio: String,
+    website: String,
+    mapLink: String,
     refreshToken: String,
 }, { timestamps: true });
 

@@ -19,6 +19,14 @@ export const apiSlice = createApi({
       query: () => "/auth/logout",
       invalidatesTags: ["User"],
     }),
+    updateProfile: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "/api/user/profile",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
 
     // Events
     getEvents: builder.query<EventType[], void>({
@@ -92,6 +100,7 @@ export const apiSlice = createApi({
 export const {
   useCheckAuthQuery,
   useLogoutMutation,
+  useUpdateProfileMutation,
   useGetEventsQuery,
   useGetPublicEventQuery,
   useAddEventMutation,

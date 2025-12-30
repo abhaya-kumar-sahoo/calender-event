@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Calendar, Link as LinkIcon, Users, Menu, X } from 'lucide-react';
+import { Calendar, Link as LinkIcon, Users, Menu, X, User } from 'lucide-react';
 import clsx from 'clsx';
 import { baseUrl } from '../utility';
+import { useCheckAuthQuery } from '../store/apiSlice';
 
 export default function DashboardLayout() {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const { data: user } = useCheckAuthQuery();
   const navItems = [
     { label: 'Scheduling', path: '/dashboard', icon: LinkIcon, exact: true },
     { label: 'Meetings', path: '/dashboard/meetings', icon: Calendar },
     { label: 'Contacts', path: '/dashboard/contacts', icon: Users },
+    { label: 'Profile', path: '/dashboard/profile', icon: User },
   ];
 
   return (
@@ -101,12 +104,20 @@ export default function DashboardLayout() {
         <div className='p-4 mt-auto border-t border-gray-100'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-3'>
-              <div className='w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold'>
-                AS
-              </div>
-              <div className='text-sm'>
-                <p className='font-medium text-gray-900'>
-                  Heritage Lane & Co Furniture
+              {user?.picture ? (
+                <img
+                  src={user.picture}
+                  alt='Profile'
+                  className='w-10 h-10 rounded-full object-cover border border-gray-100'
+                />
+              ) : (
+                <div className='w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold'>
+                  {user?.name ? user.name.substring(0, 2).toUpperCase() : '??'}
+                </div>
+              )}
+              <div className='text-sm overflow-hidden'>
+                <p className='font-medium text-gray-900 truncate max-w-[120px]'>
+                  {user?.name || 'User'}
                 </p>
                 <p className='text-gray-500 text-xs'>Host</p>
               </div>
@@ -172,7 +183,7 @@ export default function DashboardLayout() {
 
         {/* Scrollable Content Area */}
         <main className='flex-1 overflow-y-auto'>
-          <div className='max-w-5xl mx-auto p-4 md:p-8'>
+          <div className='max-w-[1600px] mx-auto p-4 md:p-8'>
             <Outlet />
           </div>
         </main>

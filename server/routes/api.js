@@ -311,6 +311,25 @@ router.put('/bookings/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+// --- User Profile ---
+router.put('/user/profile', isAuthenticated, upload.single('picture'), async (req, res) => {
+    try {
+        const updateData = { ...req.body };
+        if (req.file) {
+            updateData.picture = req.file.location;
+        }
+
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { $set: updateData },
+            { new: true }
+        );
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.delete('/bookings/:id', isAuthenticated, async (req, res) => {
     try {
         const booking = await Booking.findOneAndDelete({

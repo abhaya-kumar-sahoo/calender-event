@@ -8,6 +8,7 @@ import {
   useDeleteEventMutation,
   useAddBookingMutation,
   useUpdateBookingMutation,
+  useUpdateProfileMutation,
 } from './apiSlice';
 
 interface StoreContextType {
@@ -20,6 +21,7 @@ interface StoreContextType {
   updateBooking: (id: string, updates: Partial<Booking>) => void;
   updateEvent: (id: string, updates: Partial<EventType>) => void;
   deleteEvent: (id: string) => void;
+  updateProfile: (data: any) => Promise<any>;
   isLoading: boolean;
 }
 
@@ -36,6 +38,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [deleteEventMutation] = useDeleteEventMutation();
   const [addBookingMutation] = useAddBookingMutation();
   const [updateBookingMutation] = useUpdateBookingMutation();
+  const [updateProfileMutation] = useUpdateProfileMutation();
 
   // getEventBySlug removed
 
@@ -93,6 +96,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
+  const updateProfile = async (data: any) => {
+    try {
+      return await updateProfileMutation(data).unwrap();
+    } catch (error) {
+      console.error('Failed to update profile', error);
+      throw error;
+    }
+  };
 
   return (
     <StoreContext.Provider
@@ -106,6 +117,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         updateBooking,
         updateEvent,
         deleteEvent,
+        updateProfile,
         isLoading: eventsLoading || bookingsLoading,
       }}
     >
