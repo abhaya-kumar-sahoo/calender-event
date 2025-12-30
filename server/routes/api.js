@@ -5,6 +5,7 @@ const Booking = require('../models/Booking');
 const User = require('../models/User');
 const { createCalendarEvent } = require('../utils/googleCalendar');
 const { sendConfirmationEmail } = require('../utils/email');
+const { upload } = require('../utils/s3');
 
 const isAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) return next();
@@ -21,28 +22,53 @@ router.get('/events', isAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/events', isAuthenticated, async (req, res) => {
+router.post('/events', isAuthenticated, upload.single('eventImage'), async (req, res) => {
     try {
-        // Basic unique slug check
-        const existing = await EventType.findOne({ slug: req.body.slug });
-        if (existing) {
-            req.body.slug = `${req.body.slug}-${Math.floor(Math.random() * 1000)}`;
+        const eventData = { ...req.body };
+        if (req.file) {
+            eventData.eventImage = req.file.location;
         }
-        const event = await EventType.create({ ...req.body, userId: req.user._id });
+
+        // Basic unique slug check
+        const existing = await EventType.findOne({ slug: eventData.slug });
+        if (existing) {
+            eventData.slug = `${eventData.slug}-${Math.floor(Math.random() * 1000)}`;
+        }
+        const event = await EventType.create({ ...eventData, userId: req.user._id });
         res.json(event);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-router.put('/events/:id', isAuthenticated, async (req, res) => {
+router.put('/events/:id', isAuthenticated, upload.single('eventImage'), async (req, res) => {
     try {
+        const updateData = { ...req.body };
+        if (req.file) {
+            updateData.eventImage = req.file.location;
+        }
+
         const event = await EventType.findOneAndUpdate(
             { _id: req.params.id, userId: req.user._id },
-            req.body,
+            updateData,
             { new: true }
         );
         res.json(event);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.delete('/events/:id', isAuthenticated, async (req, res) => {
+    try {
+        const event = await EventType.findOneAndDelete({
+            _id: req.params.id,
+            userId: req.user._id
+        });
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+        res.json({ message: 'Event deleted' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -77,7 +103,7 @@ router.post('/bookings', async (req, res) => {
             duration    // Optional, for quick meetings
         } = req.body;
 
-        let host, eventTitle, eventDuration;
+        let host, eventTitle, eventDuration, eventData = {};
 
         if (eventId) {
             const eventType = await EventType.findById(eventId).populate('userId');
@@ -86,6 +112,14 @@ router.post('/bookings', async (req, res) => {
             host = eventType.userId;
             eventTitle = eventType.title;
             eventDuration = eventType.duration;
+            eventData = {
+                location: eventType.location,
+                locationAddress: eventType.locationAddress,
+                locationUrl: eventType.locationUrl,
+                host: eventType.host,
+                eventImage: eventType.eventImage,
+                availability: eventType.availability,
+            };
         } else {
             // Quick meeting flow: Must be authenticated to act as host
             if (!req.user) {
@@ -106,7 +140,7 @@ router.post('/bookings', async (req, res) => {
         try {
             const gEvent = await createCalendarEvent(host, {
                 title: `Meeting: ${guestName} - ${eventTitle}`,
-                notes: `Mobile: ${guestMobile || 'N/A'}\n${notes || ''}`, // Append mobile to Google Calendar notes
+                notes: `Mobile: ${guestMobile || 'N/A'}\n${notes || ''}\nLocation: ${eventData.locationAddress || eventData.location || 'N/A'}`, // Append mobile and location to Google Calendar notes
                 startTime: startTime,
                 endTime: endTime.toISOString(),
                 guestEmail,
@@ -130,6 +164,7 @@ router.post('/bookings', async (req, res) => {
             notes,
             title: eventTitle,
             duration: eventDuration,
+            ...eventData,
             googleEventId: googleEventData ? googleEventData.id : null,
             status: 'confirmed',
         });

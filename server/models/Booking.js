@@ -12,6 +12,12 @@ const bookingSchema = new mongoose.Schema({
     startTime: { type: Date, required: true },
     endTime: { type: Date, required: true },
     notes: String,
+    location: { type: String, enum: ['in-person', 'gmeet'] },
+    locationAddress: String,
+    locationUrl: String,
+    host: String,
+    eventImage: String,
+    availability: String,
     status: { type: String, enum: ['confirmed', 'cancelled'], default: 'confirmed' },
     googleEventId: String,
 }, {

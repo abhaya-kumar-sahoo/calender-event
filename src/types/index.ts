@@ -5,6 +5,12 @@ export interface EventType {
   description: string;
   slug: string;
   color: string;
+  location?: "in-person" | "gmeet";
+  locationAddress?: string;
+  locationUrl?: string;
+  host?: string;
+  eventImage?: string;
+  availability?: string;
 }
 
 export interface Booking {
@@ -16,9 +22,15 @@ export interface Booking {
   additionalGuests?: string[];
   startTime: string; // ISO date string
   notes?: string;
-  status: 'confirmed' | 'cancelled';
+  status: "confirmed" | "cancelled";
   title?: string;
   duration?: number;
+  location?: "in-person" | "gmeet";
+  locationAddress?: string;
+  locationUrl?: string;
+  host?: string;
+  eventImage?: string;
+  availability?: string;
 }
 
-export type ViewMode = 'desktop' | 'mobile';
+export type ViewMode = "desktop" | "mobile";

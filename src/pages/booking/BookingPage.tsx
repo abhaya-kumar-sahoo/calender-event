@@ -25,6 +25,7 @@ import {
   X,
   MapPin,
   ExternalLink,
+  Video,
 } from "lucide-react";
 import clsx from "clsx";
 import logo from "../../assets/logo.png";
@@ -38,6 +39,7 @@ export default function BookingPage() {
   const { data: event, isLoading } = useGetPublicEventQuery(id || "", {
     skip: !id,
   });
+  // console.log({ event });
 
   const [step, setStep] = useState<BookingStep>("date-time");
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1));
@@ -185,17 +187,17 @@ export default function BookingPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white max-w-lg w-full rounded-lg shadow-lg border border-gray-100 p-8 text-center">
           <div className=" flex items-center justify-center mx-auto mb-6">
-            <div className="mb-6 flex justify-center md:justify-start">
+            <div className="mb-6 flex justify-center">
               <img
-                src={logo}
-                alt="Heritage Lane & Co"
-                className="w-[280px] h-auto object-contain"
+                src={event.eventImage || logo}
+                alt={event.title}
+                className="w-[280px] h-40 object-cover rounded-xl shadow-sm"
               />
             </div>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Confirmed</h2>
           <p className="text-gray-600 mb-6">
-            You are scheduled with Heritage Lane & Co Furniture.
+            You are scheduled with {event.host || "Heritage Lane & Co Furniture"}.
           </p>
 
           <div className="bg-gray-50 rounded-lg p-4 text-left mb-8 border border-gray-100">
@@ -241,9 +243,9 @@ export default function BookingPage() {
           {/* Logo */}
           <div className="mb-6 flex justify-center md:justify-start">
             <img
-              src={logo}
-              alt="Heritage Lane & Co"
-              className="w-[280px] h-auto object-contain"
+              src={event.eventImage || logo}
+              alt={event.title}
+              className="w-full h-48 object-cover rounded-xl shadow-md"
             />
           </div>
 
@@ -257,7 +259,7 @@ export default function BookingPage() {
           )}
 
           <div className="text-gray-500 font-medium mb-1">
-            Heritage Lane and Co Furniture
+            {event.host || "Heritage Lane and Co Furniture"}
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
             {event.title}
@@ -265,22 +267,29 @@ export default function BookingPage() {
 
           <div className="space-y-4 text-gray-600">
             {/* Location */}
-            <a
-              href="https://www.google.com/maps/place/Heritage+Lane+%26+Co.+Furniture+Melbourne/@-37.8721929,144.7443595,57m/data=!3m1!1e3!4m6!3m5!1s0x6ad68952fb5e1a87:0x914594e155e5ae!8m2!3d-37.872261!4d144.744583!16s%2Fg%2F11yh3bl836?entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoASAFQAw%3D%3D"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-start gap-3 hover:bg-gray-50 p-2 -ml-2 rounded-lg transition-colors group"
-            >
-              <MapPin className="w-5 h-5 text-gray-400 mt-0.5 group-hover:text-blue-600 transition-colors" />
-              <div className="flex-1 text-gray-600 group-hover:text-blue-600 transition-colors">
-                <p className="font-medium">
-                  1/22-30 Wallace Ave
-                </p>
-                <p>Point Cook VIC 3030</p>
+            {event.location === "in-person" ? (
+              <a
+                href={event.locationUrl || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-3 hover:bg-gray-50 p-2 -ml-2 rounded-lg transition-colors group"
+              >
+                <MapPin className="w-5 h-5 text-gray-400 mt-0.5 group-hover:text-blue-600 transition-colors" />
+                <div className="flex-1 text-gray-600 group-hover:text-blue-600 transition-colors">
+                  <p className="font-medium">
+                    {event.locationAddress || "In-Person Meeting"}
+                  </p>
+                </div>
+                {event.locationUrl && (
+                  <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors opacity-70 group-hover:opacity-100" />
+                )}
+              </a>
+            ) : (
+              <div className="flex items-center gap-3 text-gray-600 p-2 -ml-2">
+                <Video className="w-5 h-5 text-gray-400" />
+                <span className="font-medium">Google Meet</span>
               </div>
-              {/* External link arrow icon */}
-              <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors opacity-70 group-hover:opacity-100" />
-            </a>
+            )}
           </div>
           <p className="mt-6 text-gray-600 text-sm leading-relaxed">
             {event.description}

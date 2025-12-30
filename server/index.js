@@ -58,8 +58,8 @@ app.use(session({
     proxy: true, // Important for Render/Heroku (behind load balancer)
     cookie: {
         httpOnly: true,
-        secure: true,        // REQUIRED (HTTPS)
-        sameSite: 'none',    // REQUIRED (cross-site)
+        secure: false,        // REQUIRED (HTTPS)
+        sameSite: 'lax',    // REQUIRED (cross-site)
         maxAge: 24 * 60 * 60 * 1000,
     }
 }));
