@@ -20,6 +20,8 @@ const eventTypeSchema = new mongoose.Schema({
     emailVerify: { type: Boolean, default: false },
     phoneVerify: { type: Boolean, default: false },
     enablePhoneCheck: { type: Boolean, default: false },
+    showNotes: { type: Boolean, default: true },
+    showAdditionalLinks: { type: Boolean, default: true },
 }, {
     timestamps: true,
     toJSON: {

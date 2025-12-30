@@ -315,14 +315,28 @@ export default function BookingPage() {
             )}
           </div>
           <div className="space-y-3">
-            <a
-              href="https://www.heritagelanefurniture.com.au/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-3 px-6 rounded-lg transition-colors shadow-md"
-            >
-              Visit Our Website
-            </a>
+            {(() => {
+              const selectedProduct = event.repeaterFields?.find((l: any) => l.name === formData.selectedLink);
+              const productUrl = selectedProduct?.url;
+
+              return productUrl ? (
+                <a
+                  href={productUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-3 px-6 rounded-lg transition-colors shadow-md animate-in fade-in slide-in-from-bottom-2 duration-500"
+                >
+                  Visit Product Page
+                </a>
+              ) : (
+                <button
+                  disabled
+                  className="block w-full bg-gray-200 text-gray-400 font-medium py-3 px-6 rounded-lg cursor-not-allowed border border-gray-100 shadow-inner"
+                >
+                  Visit Our Website
+                </button>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -385,9 +399,11 @@ export default function BookingPage() {
               </div>
             )}
           </div>
-          <p className="mt-6 text-gray-600 text-sm leading-relaxed">
-            {event.description}
-          </p>
+          {event.description && (
+            <p className="mt-6 text-gray-600 text-sm leading-relaxed">
+              {event.description}
+            </p>
+          )}
         </div>
 
         {/* Right Panel: Interactive */}
@@ -727,12 +743,12 @@ export default function BookingPage() {
                       htmlFor="mobile"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      {event.enablePhoneCheck ? "Mobile No *" : "Mobile No"}
+                      {event.enablePhoneCheck || event.phoneVerify ? "Mobile No *" : "Mobile No"}
                     </label>
                     <input
                       id="mobile"
                       type="tel"
-                      required={event.enablePhoneCheck}
+                      required={event.enablePhoneCheck || event.phoneVerify}
                       className="w-full text-gray-900 placeholder-gray-500 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow"
                       value={formData.mobile}
                       onChange={(e) =>
@@ -742,36 +758,38 @@ export default function BookingPage() {
                   </div>
                 )}
 
-
-
-
-                <div>
-                  <label
-                    htmlFor="notes"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Product you are Interested in
-                  </label>
-                  <textarea
-                    id="notes"
-                    rows={4}
-                    className="w-full text-gray-900 placeholder-gray-500 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow resize-none"
-                    value={formData.notes}
-                    onChange={(e) =>
-                      setFormData({ ...formData, notes: e.target.value })
-                    }
-                  />
-                </div>
-                {event.repeaterFields && event.repeaterFields.length > 0 && (
+                {event.showNotes !== false && (
+                  <div>
+                    <label
+                      htmlFor="notes"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Additional Notes *
+                    </label>
+                    <textarea
+                      id="notes"
+                      rows={3}
+                      required
+                      className="w-full text-gray-900 placeholder-gray-500 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow resize-none"
+                      placeholder="Tell us more about your visit..."
+                      value={formData.notes}
+                      onChange={(e) =>
+                        setFormData({ ...formData, notes: e.target.value })
+                      }
+                    />
+                  </div>
+                )}
+                {event.showAdditionalLinks !== false && event.repeaterFields && event.repeaterFields.length > 0 && (
                   <div>
                     <label
                       htmlFor="selectedLink"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Additional Selection (Optional)
+                      Product you are Interested in *
                     </label>
                     <select
                       id="selectedLink"
+                      required
                       className="w-full text-gray-900 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow bg-white"
                       value={formData.selectedLink}
                       onChange={(e) => setFormData({ ...formData, selectedLink: e.target.value })}
@@ -779,7 +797,7 @@ export default function BookingPage() {
                       <option value="">Select an option</option>
                       {event.repeaterFields.map((link: any, idx: number) => (
                         <option key={idx} value={link.name}>
-                          {link.name} (View Link)
+                          {link.name}
                         </option>
                       ))}
                     </select>

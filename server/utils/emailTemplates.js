@@ -2,51 +2,57 @@ const getEmailHeader = () => `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light dark">
-    <meta name="supported-color-schemes" content="light dark">
+
+    <!-- No theme / no color-scheme -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+
     <style>
-        :root {
-            color-scheme: light dark;
-            supported-color-schemes: light dark;
+        /* Force everything to light look — no dark mode support, no auto adjustments */
+        body, table, td, div, p, a, span {
+            background-color: #ffffff !important;
+            color: #4a4a4a !important;
+            font-family: 'Playfair Display', serif, sans-serif !important;
         }
-        @media (prefers-color-scheme: dark) {
-            .email-container {
-                background-color: #111111 !important;
-                color: #e5e7eb !important;
-            }
-            .content-box {
-                background-color: #1a1a1a !important;
-                border-color: #333333 !important;
-            }
-            .text-main {
-                color: #e5e7eb !important;
-            }
-            .text-sub {
-                color: #9ca3af !important;
-            }
-            .footer-box {
-                background-color: #2d241a !important;
-            }
-            .footer-text {
-                color: #d4a373 !important;
-            }
-            .otp-box {
-                background-color: #2d241a !important;
-                border-color: #8c6239 !important;
-                color: #fce5cd !important;
-            }
-            .info-card {
-                background-color: #222222 !important;
-                border-color: #333333 !important;
-            }
-            h2, h3 {
-                color: #ffffff !important;
-            }
+
+        /* Structural styling kept minimal for email compatibility */
+        .email-container {
+            background-color: #ffffff !important;
         }
-        /* Gmail/Android force-dark-mode fixes */
-        u + .body .email-container {
-            background-color: #111111 !important;
+
+        .content-box {
+            background-color: #ffffff !important;
+            border: 1px solid #eeeeee !important;
+        }
+
+        .text-main {
+            color: #4a4a4a !important;
+        }
+
+        .text-sub {
+            color: #6b6b6b !important;
+        }
+
+        .footer-box {
+            background-color: #fce5cd !important;
+        }
+
+        .footer-text {
+            color: #8c6239 !important;
+        }
+
+        .otp-box {
+            background-color: #f3f3f3 !important;
+            border: 1px solid #cccccc !important;
+            color: #111111 !important;
+        }
+
+        .info-card {
+            background-color: #f9f9f9 !important;
+            border: 1px solid #eeeeee !important;
+        }
+
+        h1, h2, h3 {
+            color: #4a4a4a !important;
         }
     </style>
 </head>
@@ -140,12 +146,7 @@ ${getEmailHeader()}
 
         ${getEmailFooter()}
 
-        <!-- User Answers -->
-        <div style="padding: 20px 50px; background-color: #f9f9f9; border-top: 1px solid #eeeeee;">
-            <h3 class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 10px 0;">Your Answers:</h3>
-            <p class="text-main" style="font-size: 13px; margin: 4px 0;"><strong>Phone:</strong> ${guestMobile || "N/A"}</p>
-            <p class="text-main" style="font-size: 13px; margin: 4px 0;"><strong>Interest:</strong> ${notes || "N/A"}</p>
-        </div>
+      
     </div>
 </body>
 </html>

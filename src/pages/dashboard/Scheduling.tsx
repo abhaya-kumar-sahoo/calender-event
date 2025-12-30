@@ -47,6 +47,8 @@ export default function Scheduling() {
     emailVerify: false,
     phoneVerify: false,
     enablePhoneCheck: false,
+    showNotes: true,
+    showAdditionalLinks: true,
   });
 
   const [quickBookingData, setQuickBookingData] = useState({
@@ -84,6 +86,8 @@ export default function Scheduling() {
       emailVerify: false,
       phoneVerify: false,
       enablePhoneCheck: false,
+      showNotes: true,
+      showAdditionalLinks: true,
     });
     setImageFile(null);
     setQuickBookingData({
@@ -117,6 +121,8 @@ export default function Scheduling() {
       emailVerify: !!event.emailVerify,
       phoneVerify: !!event.phoneVerify,
       enablePhoneCheck: !!event.enablePhoneCheck,
+      showNotes: event.showNotes !== false,
+      showAdditionalLinks: event.showAdditionalLinks !== false,
     });
     setImageFile(null);
     setIsModalOpen(true);
@@ -167,6 +173,8 @@ export default function Scheduling() {
         data.append("emailVerify", formData.emailVerify.toString());
         data.append("phoneVerify", formData.phoneVerify.toString());
         data.append("enablePhoneCheck", formData.enablePhoneCheck.toString());
+        data.append("showNotes", formData.showNotes.toString());
+        data.append("showAdditionalLinks", formData.showAdditionalLinks.toString());
         data.append("slug", formData.title.toLowerCase().replace(/\s+/g, "-"));
 
         if (imageFile) {

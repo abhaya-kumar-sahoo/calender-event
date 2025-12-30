@@ -36,27 +36,9 @@ export default function DashboardLayout() {
       >
         <div className='p-6 border-b border-gray-100 flex items-center justify-between'>
           <div className='flex items-center gap-2'>
-            <div className='w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white'>
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                className='w-5 h-5'
-              >
-                <rect width='18' height='18' x='3' y='3' rx='2' />
-                <path d='M7 7h10v10H7z' />
-                <path d='M7 7 3 3' />
-                <path d='M17 7 21 3' />
-                <path d='M7 17 3 21' />
-                <path d='M17 17 21 21' />
-              </svg>
-            </div>
-            <span className='text-xl font-bold tracking-tight text-gray-800'>
-              Tesseract
+
+            <span className='text-4xl font-bold tracking-tight text-gray-800'>
+              Invite
             </span>
           </div>
           {/* Close button for mobile */}
@@ -171,7 +153,7 @@ export default function DashboardLayout() {
                 <path d='M17 17 21 21' />
               </svg>
             </div>
-            <span className='font-bold text-gray-900'>Tesseract</span>
+            <span className='font-bold text-gray-900'>Invite</span>
           </div>
           <button
             onClick={() => setIsSidebarOpen(true)}

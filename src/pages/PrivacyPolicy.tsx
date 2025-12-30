@@ -18,7 +18,7 @@ export default function PrivacyPolicy() {
         <div className='p-8 sm:p-12 space-y-10 text-gray-700 leading-relaxed font-sans'>
           <section>
             <p className='text-lg'>
-              This Privacy Policy describes how <strong>Tesseract</strong>{' '}
+              This Privacy Policy describes how <strong>Invite</strong>{' '}
               collects, uses, and protects your information when you use our
               website and services. By accessing or using our website, you agree
               to the collection and use of information in accordance with this

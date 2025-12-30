@@ -36,6 +36,8 @@ interface SchedulingModalProps {
         emailVerify: boolean;
         phoneVerify: boolean;
         enablePhoneCheck: boolean;
+        showNotes: boolean;
+        showAdditionalLinks: boolean;
     };
     setFormData: (data: any) => void;
     quickBookingData: {
@@ -262,58 +264,16 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Verification Checkboxes */}
-                        <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-200 space-y-3">
-                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1">
-                                <Plus className="w-4 h-4 text-blue-500" />
-                                Verification & Settings
-                            </label>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <label className="flex items-center gap-3 cursor-pointer group">
-                                    <input
-                                        type="checkbox"
-                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
-                                        checked={formData.emailVerify}
-                                        onChange={(e) => setFormData({ ...formData, emailVerify: e.target.checked })}
-                                    />
-                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-                                        <Mail className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
-                                        Email Verify
-                                    </div>
-                                </label>
-                                <label className="flex items-center gap-3 cursor-pointer group">
-                                    <input
-                                        type="checkbox"
-                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
-                                        checked={formData.phoneVerify}
-                                        onChange={(e) => setFormData({ ...formData, phoneVerify: e.target.checked })}
-                                    />
-                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-                                        <Phone className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
-                                        Phone Verify
-                                    </div>
-                                </label>
-                                <label className="flex items-center gap-3 cursor-pointer group">
-                                    <input
-                                        type="checkbox"
-                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
-                                        checked={formData.enablePhoneCheck}
-                                        onChange={(e) => setFormData({ ...formData, enablePhoneCheck: e.target.checked })}
-                                    />
-                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-                                        <Phone className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
-                                        Enable Phone Check
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
+
 
                         {/* Description & Color */}
                         <div>
-                            <label htmlFor="description" className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
-                                <Plus className="w-4 h-4 text-blue-500" />
-                                About this Event
-                            </label>
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label htmlFor="description" className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                    <Plus className="w-4 h-4 text-blue-500" />
+                                    About this Event
+                                </label>
+                            </div>
                             <textarea
                                 id="description"
                                 rows={2}
@@ -327,10 +287,12 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                         {/* Repeater Fields (Additional Links) */}
                         <div className="space-y-3 text-black">
                             <div className="flex items-center justify-between">
-                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                                    <ExternalLink className="w-4 h-4 text-blue-500" />
-                                    Additional Links (Optional)
-                                </label>
+                                <div className="flex items-center gap-4">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                        <ExternalLink className="w-4 h-4 text-blue-500" />
+                                        Additional Links (Optional)
+                                    </label>
+                                </div>
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -385,7 +347,75 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                                 </div>
                             )}
                         </div>
-
+                        {/* Verification Checkboxes */}
+                        <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-200 space-y-3">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1">
+                                <Plus className="w-4 h-4 text-blue-500" />
+                                Verification & Settings
+                            </label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                                        checked={formData.emailVerify}
+                                        onChange={(e) => setFormData({ ...formData, emailVerify: e.target.checked })}
+                                    />
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                        <Mail className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                                        Email Verify
+                                    </div>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                                        checked={formData.phoneVerify}
+                                        onChange={(e) => setFormData({ ...formData, phoneVerify: e.target.checked })}
+                                    />
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                        <Phone className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                                        Phone Verify
+                                    </div>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                                        checked={formData.enablePhoneCheck}
+                                        onChange={(e) => setFormData({ ...formData, enablePhoneCheck: e.target.checked })}
+                                    />
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                        <Phone className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                                        Enable Phone Check
+                                    </div>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                                        checked={formData.showNotes}
+                                        onChange={(e) => setFormData({ ...formData, showNotes: e.target.checked })}
+                                    />
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                        <Plus className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                                        Additional Notes
+                                    </div>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                                        checked={formData.showAdditionalLinks}
+                                        onChange={(e) => setFormData({ ...formData, showAdditionalLinks: e.target.checked })}
+                                    />
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                        <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                                        Show Additional Links
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
                         <div>
                             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                                 <Plus className="w-4 h-4 text-blue-500" />

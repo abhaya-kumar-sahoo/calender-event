@@ -1,7 +1,7 @@
 {
   "name": "calendly-clone-server",
   "version": "1.0.0",
-  "description": "Backend for Tesseract",
+  "description": "Backend for Invite",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

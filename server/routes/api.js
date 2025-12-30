@@ -277,7 +277,7 @@ router.put('/bookings/:id', isAuthenticated, async (req, res) => {
                     <p><strong>Event:</strong> ${bookingTitle}</p>
                     <p><strong>Host:</strong> ${host.name}</p>
                     <p><strong>Original Date & Time:</strong> ${new Date(booking.startTime).toLocaleString('en-US', { timeZone: booking.timezone || 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })} (${booking.timezone || 'Asia/Kolkata'})</p>
-                    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">This notification was sent via Tesseract.</p>
+                    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">This notification was sent via Invite.</p>
                 </div>
              `;
 

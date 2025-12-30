@@ -16,6 +16,8 @@ export interface EventType {
   emailVerify?: boolean;
   phoneVerify?: boolean;
   enablePhoneCheck?: boolean;
+  showNotes?: boolean;
+  showAdditionalLinks?: boolean;
 }
 
 export interface Booking {
