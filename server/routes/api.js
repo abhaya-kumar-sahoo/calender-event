@@ -79,7 +79,7 @@ router.get('/public/events/:id', async (req, res) => {
     try {
         const event = await EventType.findById(req.params.id).populate(
             'userId',
-            'name email picture'
+            'name email picture timezone'
         );
         if (!event) return res.status(404).json({ message: 'Event not found' });
         res.json(event);
@@ -100,7 +100,8 @@ router.post('/bookings', async (req, res) => {
             startTime,
             notes,
             title,      // Optional, for quick meetings
-            duration    // Optional, for quick meetings
+            duration,    // Optional, for quick meetings
+            timezone     // Guest's selected timezone
         } = req.body;
 
         let host, eventTitle, eventDuration, eventData = {};
@@ -166,6 +167,7 @@ router.post('/bookings', async (req, res) => {
             duration: eventDuration,
             ...eventData,
             googleEventId: googleEventData ? googleEventData.id : null,
+            timezone,
             status: 'confirmed',
         });
 
@@ -173,22 +175,29 @@ router.post('/bookings', async (req, res) => {
         const allGuests = [guestEmail, ...(additionalGuests || [])];
 
         const formattedDate = new Date(startTime).toLocaleString('en-US', {
-            timeZone: 'Asia/Kolkata',
+            timeZone: timezone || 'Asia/Kolkata',
             dateStyle: 'full',
             timeStyle: 'short',
-        }); // e.g., "Sunday, January 4, 2026 at 9:30 AM"
+        });
 
         // Format for Guest Email (Image 3 style)
         // Extract time and date separately for cleaner formatting if needed
         const guestEmailHtml = `
       <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; color: #374151;">
         <p>Hi ${guestName},</p>
-        <p>Your <strong>${eventTitle}</strong> with <strong>Heritage Lane and Co Furniture</strong> at <strong>${formattedDate} (Australian Eastern Time)</strong> is scheduled.</p>
+        <p>Your <strong>${eventTitle}</strong> with <strong>Heritage Lane and Co Furniture</strong> at <strong>${formattedDate} (${timezone || 'Asia/Kolkata'})</strong> is scheduled.</p>
         
         <p style="margin-top: 20px;">Stay as long as you like, explore every detail, and experience how true craftsmanship feels in person.</p>
         <p>Fall in love with the warmth of solid teak, hand-carved details, and timeless designs!</p>
 
-        <p style="margin-top: 20px;"><strong>Location:</strong> 1/22-30 Wallace Ave, Point Cook VIC 3030</p>
+        ${eventData.location === 'gmeet' && meetingLink ? `
+        <div style="margin-top: 20px; padding: 15px; background-color: #f0f7ff; border-radius: 12px; border: 1px solid #dbeafe;">
+          <p style="margin: 0 0 8px 0; font-weight: bold; color: #1e40af;">Google Meet Link:</p>
+          <a href="${meetingLink}" style="color: #2563eb; text-decoration: none; font-weight: 500;">${meetingLink}</a>
+        </div>
+        ` : `
+        <p style="margin-top: 20px;"><strong>Location:</strong> ${eventData.locationAddress || '1/22-30 Wallace Ave, Point Cook VIC 3030'}</p>
+        `}
 
         <h3 style="margin-top: 30px; font-size: 16px; font-weight: bold;">Your Answers:</h3>
         <p><strong>Phone Number</strong><br>${guestMobile || 'N/A'}</p>
@@ -231,6 +240,18 @@ router.post('/bookings', async (req, res) => {
             <p style="margin-bottom: 4px; font-weight: bold;">Mobile:</p>
             <p style="margin-top: 0;">${guestMobile || 'N/A'}</p>
         </div>
+
+        ${eventData.location === 'gmeet' && meetingLink ? `
+        <div style="margin-top: 20px; padding: 15px; background-color: #f0f7ff; border-radius: 12px; border: 1px solid #dbeafe;">
+          <p style="margin: 0 0 8px 0; font-weight: bold; color: #1e40af;">Google Meet Link:</p>
+          <a href="${meetingLink}" style="color: #2563eb; text-decoration: none; font-weight: 500;">${meetingLink}</a>
+        </div>
+        ` : `
+        <div style="margin-top: 16px;">
+            <p style="margin-bottom: 4px; font-weight: bold;">Location:</p>
+            <p style="margin-top: 0;">${eventData.locationAddress || '1/22-30 Wallace Ave, Point Cook VIC 3030'}</p>
+        </div>
+        `}
       </div>
     `;
 
@@ -285,7 +306,7 @@ router.put('/bookings/:id', isAuthenticated, async (req, res) => {
                     <p>The following meeting has been cancelled:</p>
                     <p><strong>Event:</strong> ${bookingTitle}</p>
                     <p><strong>Host:</strong> ${host.name}</p>
-                    <p><strong>Original Date & Time:</strong> ${new Date(booking.startTime).toLocaleString('en-US', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })} (IST)</p>
+                    <p><strong>Original Date & Time:</strong> ${new Date(booking.startTime).toLocaleString('en-US', { timeZone: booking.timezone || 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })} (${booking.timezone || 'Asia/Kolkata'})</p>
                     <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">This notification was sent via Tesseract.</p>
                 </div>
              `;

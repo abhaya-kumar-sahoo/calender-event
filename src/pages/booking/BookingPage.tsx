@@ -30,8 +30,21 @@ import {
 import clsx from "clsx";
 import logo from "../../assets/logo.png";
 import { motion, AnimatePresence } from "framer-motion";
+import { getTimezones, formatTimeInTimezone } from "../../utils/timezoneData";
+import { Search } from "lucide-react";
 
 type BookingStep = "date-time" | "form" | "confirmation";
+const getTimezoneLongName = (tz: string): string => {
+  const now = new Date();
+  return (
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      timeZoneName: "long",
+    })
+      .formatToParts(now)
+      .find((p) => p.type === "timeZoneName")?.value || tz
+  );
+};
 
 export default function BookingPage() {
   const { id } = useParams();
@@ -45,6 +58,14 @@ export default function BookingPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [selectedTimezone, setSelectedTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  const [selectedTimezoneLabel, setSelectedTimezoneLabel] = useState(
+    getTimezoneLongName(userTZ)
+  );
+  const [isTimezoneSelectorOpen, setIsTimezoneSelectorOpen] = useState(false);
+  const [searchTz, setSearchTz] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -92,17 +113,50 @@ export default function BookingPage() {
 
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
-  // Time Slots Generation (Mock)
+  // Time Slots Generation with Timezone Awareness
   const generateTimeSlots = () => {
-    const slots = [];
-    let startHour = 10;
-    const endHour = 19;
+    const slots: string[] = [];
+    if (!selectedDate || !event) return [];
 
-    for (let h = startHour; h < endHour; h++) {
-      slots.push(`${h}:00`);
-      slots.push(`${h}:30`);
+    // Use host's saved timezone or fallback to India/Melbourne based on context
+    const hostTimezone = (event.userId as any)?.timezone || "Asia/Kolkata";
+
+    for (let h = 10; h < 19; h++) {
+      [0, 30].forEach(m => {
+        // Create a date representing h:m in the host's timezone
+        // A simple way to get the UTC date for a specific time in a specific timezone
+        // is to use toLocaleString to get the offset at that time.
+
+        const dateStr = format(selectedDate, "yyyy-MM-dd");
+        const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00`;
+
+        // We'll use a dummy date to find the offset for the host timezone at this specific date/time
+        // This handles DST correctly.
+        const dummy = new Date(`${dateStr}T${timeStr}`);
+        const offsetPart = new Intl.DateTimeFormat('en-US', {
+          timeZone: hostTimezone,
+          timeZoneName: 'longOffset'
+        }).formatToParts(dummy).find(p => p.type === 'timeZoneName')?.value || 'GMT+11:00';
+
+        // offsetPart is like "GMT+11:00"
+        const offset = offsetPart.replace('GMT', '');
+        const iso = `${dateStr}T${timeStr}${offset}`;
+        const date = new Date(iso);
+
+        // Convert to guest's selected timezone
+        const guestTimeStr = new Intl.DateTimeFormat('en-US', {
+          timeZone: selectedTimezone,
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        }).format(date);
+
+        if (!slots.includes(guestTimeStr)) {
+          slots.push(guestTimeStr);
+        }
+      });
     }
-    return slots; // simple mock strings for now
+    return slots;
   };
 
   const timeSlots = generateTimeSlots();
@@ -143,10 +197,18 @@ export default function BookingPage() {
     e.preventDefault();
     if (!selectedDate || !selectedTime) return;
 
-    // Combine date and time
-    const [hours, minutes] = selectedTime.split(":");
-    const bookingDateTime = new Date(selectedDate);
-    bookingDateTime.setHours(parseInt(hours), parseInt(minutes));
+    // Combine date and time (selectedTime is now "10:30 AM" etc. in guest timezone)
+    const bookingDate = new Date(selectedDate);
+    // Parsing "10:30 AM" or "10:30 PM"
+    const [time, modifier] = selectedTime.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+    if (modifier === 'PM' && hours < 12) hours += 12;
+    if (modifier === 'AM' && hours === 12) hours = 0;
+
+    // This bookingDate is still in "local" time of where the browser is
+    // We need to interpret this H:M as being in 'selectedTimezone'
+    const dateStr = format(bookingDate, "yyyy-MM-dd");
+    const isoStr = `${dateStr}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
 
     // Add any remaining input in guest field if valid
     let finalGuests = [...guestEmails];
@@ -164,8 +226,9 @@ export default function BookingPage() {
       guestEmail: formData.email,
       guestMobile: formData.mobile,
       additionalGuests: finalGuests,
-      startTime: bookingDateTime.toISOString(),
+      startTime: new Date(isoStr).toISOString(),
       notes: formData.notes,
+      timezone: selectedTimezone,
     });
 
     setStep("confirmation");
@@ -176,11 +239,26 @@ export default function BookingPage() {
   if (step === "confirmation") {
     let endTimeFormatted = "";
     if (selectedTime) {
-      const [hours, minutes] = selectedTime.split(":").map(Number);
-      const tempDate = new Date();
+      // Parse selectedTime (e.g., "10:30 AM")
+      const [time, modifier] = selectedTime.split(' ');
+      let [hours, minutes] = time.split(':').map(Number);
+      if (modifier === 'PM' && hours < 12) hours += 12;
+      if (modifier === 'AM' && hours === 12) hours = 0;
+
+      // Create a temporary date object for calculation, assuming it's in the selected timezone
+      const tempDate = new Date(selectedDate || new Date()); // Fallback to current date if selectedDate is null
       tempDate.setHours(hours, minutes);
+
+      // Calculate end time
       const endDate = new Date(tempDate.getTime() + event.duration * 60000);
-      endTimeFormatted = format(endDate, "H:mm");
+
+      // Format end time in the selected timezone
+      endTimeFormatted = new Intl.DateTimeFormat('en-US', {
+        timeZone: selectedTimezone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      }).format(endDate);
     }
 
     return (
@@ -637,11 +715,69 @@ export default function BookingPage() {
             </div>
           )}
           {step !== "form" && (
-            <div className="flex items-center gap-3 text-gray-900 justify-start ">
-              <Globe className="w-5 h-5 py-10 " />
-              <span className="text-xs">
-                Australian Eastern Time (Melbourne)
-              </span>
+            <div className="relative">
+              <button
+                onClick={() => setIsTimezoneSelectorOpen(!isTimezoneSelectorOpen)}
+                className="flex items-center gap-3 text-gray-900 justify-start hover:bg-gray-50 p-2 rounded-lg transition-colors"
+              >
+                <Globe className="w-5 h-5 text-gray-400" />
+                <span className="text-xs font-semibold">
+                  {selectedTimezoneLabel} ({formatTimeInTimezone(new Date(), selectedTimezone)})
+                </span>
+                <ChevronRight className={clsx("w-4 h-4 text-gray-400 transition-transform", isTimezoneSelectorOpen && "rotate-90")} />
+              </button>
+
+              <AnimatePresence>
+                {isTimezoneSelectorOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute bottom-full left-0 mb-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 flex flex-col"
+                  >
+                    <div className="p-4 border-b border-gray-50 bg-gray-50/50">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          className="w-full pl-9 pr-4 py-2 text-black rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+                          placeholder="Search timezone..."
+                          value={searchTz}
+                          onChange={(e) => setSearchTz(e.target.value)}
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto custom-scrollbar p-2">
+                      {getTimezones()
+                        .filter(tz => tz.label.toLowerCase().includes(searchTz.toLowerCase()) || tz.value.toLowerCase().includes(searchTz.toLowerCase()))
+                        .map(tz => (
+                          <button
+                            key={tz.value}
+                            onClick={() => {
+
+                              setSelectedTimezone(tz.value);
+                              setIsTimezoneSelectorOpen(false);
+                              setSelectedTimezoneLabel(tz.label);
+                            }}
+                            className={clsx(
+                              "w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex flex-col gap-0.5",
+                              selectedTimezone === tz.value
+                                ? "bg-blue-50 text-blue-700 font-bold"
+                                : "text-gray-600 hover:bg-gray-50"
+                            )}
+                          >
+                            <span className="flex items-center justify-between">
+                              <span>{tz.label}</span>
+                              <span className="text-[10px] opacity-70 font-normal">{tz.offset}</span>
+                            </span>
+                            <span className="text-[11px] opacity-60 font-medium">{tz.currentTime}</span>
+                          </button>
+                        ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </div>

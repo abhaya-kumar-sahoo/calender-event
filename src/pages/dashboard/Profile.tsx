@@ -30,6 +30,7 @@ export default function Profile() {
         bio: "",
         website: "",
         mapLink: "",
+        timezone: "",
         picture: "",
     });
 
@@ -43,6 +44,7 @@ export default function Profile() {
                 bio: user.bio || "",
                 website: user.website || "",
                 mapLink: user.mapLink || "",
+                timezone: user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
                 picture: user.picture || "",
             });
             setPreviewUrl(user.picture || "");
@@ -74,6 +76,7 @@ export default function Profile() {
             data.append("bio", formData.bio);
             data.append("website", formData.website);
             data.append("mapLink", formData.mapLink);
+            data.append("timezone", formData.timezone);
 
             if (imageFile) {
                 data.append("picture", imageFile);
@@ -254,6 +257,25 @@ export default function Profile() {
                                         />
                                         <Globe className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                                     </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Default Timezone</label>
+                                    <div className="relative">
+                                        <select
+                                            className="w-full pl-5 pr-12 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none appearance-none transition-all bg-gray-50/50 hover:bg-white text-black"
+                                            value={formData.timezone}
+                                            onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
+                                        >
+                                            <option value="">Select Timezone</option>
+                                            {/* @ts-ignore */}
+                                            {(Intl as any).supportedValuesOf('timeZone').map((tz: string) => (
+                                                <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
+                                            ))}
+                                        </select>
+                                        <Globe className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 pointer-events-none" />
+                                    </div>
+                                    <p className="text-[11px] text-gray-400 ml-1 font-medium">Your working hours will be based on this timezone.</p>
                                 </div>
 
                                 <div className="space-y-2">

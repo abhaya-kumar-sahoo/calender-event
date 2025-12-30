@@ -1,4 +1,5 @@
 export interface EventType {
+  userId: any;
   id: string;
   title: string;
   duration: number; // in minutes
@@ -31,6 +32,7 @@ export interface Booking {
   host?: string;
   eventImage?: string;
   availability?: string;
+  timezone?: string;
 }
 
 export type ViewMode = "desktop" | "mobile";
