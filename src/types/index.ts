@@ -12,6 +12,10 @@ export interface EventType {
   host?: string;
   eventImage?: string;
   availability?: string;
+  repeaterFields?: { name: string; url: string }[];
+  emailVerify?: boolean;
+  phoneVerify?: boolean;
+  enablePhoneCheck?: boolean;
 }
 
 export interface Booking {

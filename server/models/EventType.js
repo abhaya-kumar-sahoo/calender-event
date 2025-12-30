@@ -13,6 +13,13 @@ const eventTypeSchema = new mongoose.Schema({
     host: String,
     eventImage: String, // Base64 or URL
     availability: String,
+    repeaterFields: [{
+        name: String,
+        url: String
+    }],
+    emailVerify: { type: Boolean, default: false },
+    phoneVerify: { type: Boolean, default: false },
+    enablePhoneCheck: { type: Boolean, default: false },
 }, {
     timestamps: true,
     toJSON: {

@@ -10,6 +10,9 @@ import {
     MapPin,
     ExternalLink,
     Plus,
+    Trash2,
+    Mail,
+    Phone,
 } from "lucide-react";
 
 interface SchedulingModalProps {
@@ -29,6 +32,10 @@ interface SchedulingModalProps {
         host: string;
         eventImage: string;
         availability: string;
+        repeaterFields: { name: string; url: string }[];
+        emailVerify: boolean;
+        phoneVerify: boolean;
+        enablePhoneCheck: boolean;
     };
     setFormData: (data: any) => void;
     quickBookingData: {
@@ -255,6 +262,52 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                             </div>
                         </div>
 
+                        {/* Verification Checkboxes */}
+                        <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-200 space-y-3">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1">
+                                <Plus className="w-4 h-4 text-blue-500" />
+                                Verification & Settings
+                            </label>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                                        checked={formData.emailVerify}
+                                        onChange={(e) => setFormData({ ...formData, emailVerify: e.target.checked })}
+                                    />
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                        <Mail className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                                        Email Verify
+                                    </div>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                                        checked={formData.phoneVerify}
+                                        onChange={(e) => setFormData({ ...formData, phoneVerify: e.target.checked })}
+                                    />
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                        <Phone className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                                        Phone Verify
+                                    </div>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4.5 h-4.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                                        checked={formData.enablePhoneCheck}
+                                        onChange={(e) => setFormData({ ...formData, enablePhoneCheck: e.target.checked })}
+                                    />
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                        <Phone className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                                        Enable Phone Check
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
                         {/* Description & Color */}
                         <div>
                             <label htmlFor="description" className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
@@ -269,6 +322,68 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             />
+                        </div>
+
+                        {/* Repeater Fields (Additional Links) */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                    <ExternalLink className="w-4 h-4 text-blue-500" />
+                                    Additional Links (Optional)
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const updated = [...formData.repeaterFields, { name: "", url: "" }];
+                                        setFormData({ ...formData, repeaterFields: updated });
+                                    }}
+                                    className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    Add Link
+                                </button>
+                            </div>
+
+                            {formData.repeaterFields.length > 0 && (
+                                <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+                                    {formData.repeaterFields.map((field, index) => (
+                                        <div key={index} className="flex gap-3 items-start animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <div className="flex-1 grid grid-cols-2 gap-3">
+                                                <input
+                                                    placeholder="Link Name (e.g. Portfolio)"
+                                                    className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-all bg-gray-50/50 hover:bg-white"
+                                                    value={field.name}
+                                                    onChange={(e) => {
+                                                        const updated = [...formData.repeaterFields];
+                                                        updated[index].name = e.target.value;
+                                                        setFormData({ ...formData, repeaterFields: updated });
+                                                    }}
+                                                />
+                                                <input
+                                                    placeholder="URL (Optional)"
+                                                    className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-all bg-gray-50/50 hover:bg-white"
+                                                    value={field.url}
+                                                    onChange={(e) => {
+                                                        const updated = [...formData.repeaterFields];
+                                                        updated[index].url = e.target.value;
+                                                        setFormData({ ...formData, repeaterFields: updated });
+                                                    }}
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const updated = formData.repeaterFields.filter((_, i) => i !== index);
+                                                    setFormData({ ...formData, repeaterFields: updated });
+                                                }}
+                                                className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                            >
+                                                <Trash2 className="w-4.5 h-4.5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div>
@@ -296,35 +411,7 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                     <>
                         {/* Quick Booking Form */}
                         <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-5 space-y-4">
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <div className="flex-1">
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
-                                        <Calendar className="w-4 h-4 text-blue-500" />
-                                        Meeting Title
-                                    </label>
-                                    <input
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 transition-all bg-white placeholder:text-xs"
-                                        placeholder="e.g. Quick Chat"
-                                        value={quickBookingData.title || ""}
-                                        onChange={(e) => setQuickBookingData({ ...quickBookingData, title: e.target.value, eventId: "" })}
-                                    />
-                                    <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-wider">
-                                        OR LEAVE BLANK TO SELECT AN EVENT TYPE BELOW
-                                    </p>
-                                </div>
-                                <div className="w-full md:w-1/3">
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
-                                        <Clock className="w-4 h-4 text-blue-500" />
-                                        Duration (min)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 transition-all bg-white"
-                                        value={quickBookingData.duration || 30}
-                                        onChange={(e) => setQuickBookingData({ ...quickBookingData, duration: parseInt(e.target.value), eventId: "" })}
-                                    />
-                                </div>
-                            </div>
+
 
                             <div className="flex items-center gap-3 py-1">
                                 <div className="flex-1 h-px bg-blue-100"></div>

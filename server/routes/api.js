@@ -25,6 +25,13 @@ router.get('/events', isAuthenticated, async (req, res) => {
 router.post('/events', isAuthenticated, upload.single('eventImage'), async (req, res) => {
     try {
         const eventData = { ...req.body };
+        if (eventData.repeaterFields && typeof eventData.repeaterFields === 'string') {
+            try {
+                eventData.repeaterFields = JSON.parse(eventData.repeaterFields);
+            } catch (e) {
+                console.error("Failed to parse repeaterFields", e);
+            }
+        }
         if (req.file) {
             eventData.eventImage = req.file.location;
         }
@@ -44,6 +51,13 @@ router.post('/events', isAuthenticated, upload.single('eventImage'), async (req,
 router.put('/events/:id', isAuthenticated, upload.single('eventImage'), async (req, res) => {
     try {
         const updateData = { ...req.body };
+        if (updateData.repeaterFields && typeof updateData.repeaterFields === 'string') {
+            try {
+                updateData.repeaterFields = JSON.parse(updateData.repeaterFields);
+            } catch (e) {
+                console.error("Failed to parse repeaterFields", e);
+            }
+        }
         if (req.file) {
             updateData.eventImage = req.file.location;
         }

@@ -12,6 +12,8 @@ import {
   Video,
   Trash2,
   Edit2,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import SchedulingModal from "./modals/SchedulingModal";
@@ -41,6 +43,10 @@ export default function Scheduling() {
     host: "",
     eventImage: "", // URL from backend
     availability: "",
+    repeaterFields: [] as { name: string; url: string }[],
+    emailVerify: false,
+    phoneVerify: false,
+    enablePhoneCheck: false,
   });
 
   const [quickBookingData, setQuickBookingData] = useState({
@@ -74,6 +80,10 @@ export default function Scheduling() {
       host: "",
       eventImage: "",
       availability: "",
+      repeaterFields: [],
+      emailVerify: false,
+      phoneVerify: false,
+      enablePhoneCheck: false,
     });
     setImageFile(null);
     setQuickBookingData({
@@ -103,6 +113,10 @@ export default function Scheduling() {
       host: event.host || "",
       eventImage: event.eventImage || "",
       availability: event.availability || "",
+      repeaterFields: event.repeaterFields || [],
+      emailVerify: !!event.emailVerify,
+      phoneVerify: !!event.phoneVerify,
+      enablePhoneCheck: !!event.enablePhoneCheck,
     });
     setImageFile(null);
     setIsModalOpen(true);
@@ -149,6 +163,10 @@ export default function Scheduling() {
         data.append("locationUrl", formData.locationUrl);
         data.append("host", formData.host);
         data.append("availability", formData.availability);
+        data.append("repeaterFields", JSON.stringify(formData.repeaterFields));
+        data.append("emailVerify", formData.emailVerify.toString());
+        data.append("phoneVerify", formData.phoneVerify.toString());
+        data.append("enablePhoneCheck", formData.enablePhoneCheck.toString());
         data.append("slug", formData.title.toLowerCase().replace(/\s+/g, "-"));
 
         if (imageFile) {
@@ -333,6 +351,42 @@ export default function Scheduling() {
                   <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed pt-2 border-t border-gray-50">
                     {event.description || "No description provided."}
                   </p>
+
+                  {/* Verification Badges */}
+                  {(event.emailVerify || event.phoneVerify || event.enablePhoneCheck) && (
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {event.emailVerify && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-blue-100">
+                          <Mail className="w-3 h-3" />
+                          Email Verified
+                        </div>
+                      )}
+                      {(event.phoneVerify || event.enablePhoneCheck) && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-green-100">
+                          <Phone className="w-3 h-3" />
+                          {event.enablePhoneCheck ? "Phone Required" : "Phone Verified"}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Additional Links */}
+                  {event.repeaterFields && event.repeaterFields.length > 0 && (
+                    <div className="pt-3 space-y-2 border-t border-gray-50">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Additional Links</p>
+                      <div className="flex flex-wrap gap-2">
+                        {event.repeaterFields.map((link: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs transition-colors border border-gray-100 group/link"
+                          >
+                            <ExternalLink className="w-3 h-3 text-gray-400 group-hover/link:text-blue-500" />
+                            <span className="truncate max-w-[100px]">{link.name || "Link"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-100">
