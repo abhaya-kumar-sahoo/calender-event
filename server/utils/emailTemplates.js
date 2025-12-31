@@ -117,7 +117,6 @@ const getGuestEmailHtml = ({
     guestMobile,
     notes,
 }) => {
-    const firstName = guestName ? guestName.split(" ")[0] : "there";
 
     return `
 <!DOCTYPE html>
@@ -130,7 +129,7 @@ ${getEmailHeader()}
         <div style="padding: 40px 50px;">
             <h2 class="text-main" style="font-size: 18px; margin-bottom: 25px; font-weight: bold;">Your Heritage Lane Furniture Viewing is Confirmed</h2>
 
-            <p class="text-main" style="font-size: 16px; margin-bottom: 25px;">Hi ${firstName},</p>
+            <p class="text-main" style="font-size: 16px; margin-bottom: 25px;">Hi ${guestName},</p>
             
             <p class="text-main" style="font-size: 14px; margin-bottom: 20px;">Thank you for booking an Exclusive viewing at Heritage Lane & Co. Your appointment is confirmed for <strong>${formattedDate}</strong> at our showroom.</p>
             
