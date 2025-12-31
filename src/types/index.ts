@@ -18,6 +18,8 @@ export interface EventType {
   enablePhoneCheck?: boolean;
   showNotes?: boolean;
   showAdditionalLinks?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Booking {

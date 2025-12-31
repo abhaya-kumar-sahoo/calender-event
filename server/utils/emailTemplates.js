@@ -136,12 +136,27 @@ ${getEmailHeader()}
             
             <p class="text-main" style="font-size: 14px; margin-bottom: 25px;">During your visit, you’ll be discover our handcrafted teakwood furniture up close, explore different styles and finishes that bring a distinct character and warm ambience to your home. During your visit you are welcome to discuss any custom requirements with our team. Stay as long as you like, explore every detail, and experience how true craftsmanship and solid wood comfort can transform your home.</p>
 
+
+
+ ${eventData.location === "gmeet" && meetingLink
+            ? `
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                    <p class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;">Google Meet Link</p>
+                    <a href="${meetingLink}" style="color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 500;">${meetingLink}</a>
+                </div>
+                `
+            : `
+
             <div class="info-card" style="margin-bottom: 25px; padding: 15px; background-color: #f9fafb; border-radius: 8px; border: 1px solid #f3f4f6;">
                 <p class="text-main" style="font-size: 14px; margin: 0;"><strong>Location:</strong> Heritage Lane & Co. Showroom</p>
                 <p class="text-main" style="font-size: 14px; margin: 4px 0;"><strong>Address:</strong> ${eventData.locationAddress ||
-        "1/22–30 Wallace Ave, Point Cook VIC 3030"
-        }</p>
+            "1/22–30 Wallace Ave, Point Cook VIC 3030"
+            }</p>
             </div>
+                `
+        }
+
+
 
             <p class="text-main" style="font-size: 14px; margin-bottom: 25px;">If you need to reschedule or have any questions before your visit, simply reply to this email or call us on <strong>0 468 727 125</strong>.</p>
 
@@ -174,7 +189,7 @@ const getHostEmailHtml = ({
     additionalGuests,
     duration,
     timezone,
-    selectedLink
+    selectedLink,
 }) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -200,37 +215,50 @@ ${getEmailHeader()}
                     <p class="text-main" style="font-size: 15px; margin: 0; font-weight: bold; color: #111827;">${guestName} (<a href="mailto:${guestEmail}" style="color: #2563eb; text-decoration: none;">${guestEmail}</a>)</p>
                 </div>
 
-                ${additionalGuests && additionalGuests.length > 0 ? `
+                ${additionalGuests && additionalGuests.length > 0
+        ? `
                 <div style="margin-bottom: 15px;">
                     <p class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;">Additional Guests</p>
-                    <p class="text-main" style="font-size: 14px; margin: 0; color: #111827;">${additionalGuests.join(", ")}</p>
+                    <p class="text-main" style="font-size: 14px; margin: 0; color: #111827;">${additionalGuests.join(
+            ", "
+        )}</p>
                 </div>
-                ` : ""}
+                `
+        : ""
+    }
 
                 <div style="margin-bottom: 15px;">
                     <p class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;">Date / Time / Timezone</p>
                     <p class="text-main" style="font-size: 15px; margin: 0; font-weight: bold; color: #111827;">${formattedDate}</p>
-                    <p class="text-sub" style="font-size: 12px; color: #6b7280; margin: 2px 0 0 0;">(Timezone: ${timezone || "Not specified"})</p>
+                    <p class="text-sub" style="font-size: 12px; color: #6b7280; margin: 2px 0 0 0;">(Timezone: ${timezone || "Not specified"
+    })</p>
                 </div>
 
                 <div style="margin-bottom: 15px;">
                     <p class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;">Mobile</p>
-                    <p class="text-main" style="font-size: 15px; margin: 0; font-weight: bold; color: #111827;">${guestMobile || "N/A"}</p>
+                    <p class="text-main" style="font-size: 15px; margin: 0; font-weight: bold; color: #111827;">${guestMobile || "N/A"
+    }</p>
                 </div>
 
-                ${selectedLink ? `
+                ${selectedLink
+        ? `
                 <div style="margin-bottom: 15px;">
                     <p class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;">Interested Product / Selection</p>
                     <p class="text-main" style="font-size: 14px; margin: 0; color: #111827;">${selectedLink}</p>
                 </div>
-                ` : ""}
+                `
+        : ""
+    }
 
-                ${notes ? `
+                ${notes
+        ? `
                 <div style="margin-bottom: 15px;">
                     <p class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;">Additional Notes</p>
                     <p class="text-main" style="font-size: 14px; margin: 0; color: #111827; background-color: #fff; padding: 10px; border-radius: 4px; border: 1px solid #eee;">${notes}</p>
                 </div>
-                ` : ""}
+                `
+        : ""
+    }
 
                 ${eventData.location === "gmeet" && meetingLink
         ? `
@@ -242,7 +270,9 @@ ${getEmailHeader()}
         : `
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
                     <p class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;">Location</p>
-                    <p class="text-main" style="font-size: 14px; margin: 0; color: #111827;">${eventData.locationAddress || "1/22-30 Wallace Ave, Point Cook VIC 3030"}</p>
+                    <p class="text-main" style="font-size: 14px; margin: 0; color: #111827;">${eventData.locationAddress ||
+        "1/22-30 Wallace Ave, Point Cook VIC 3030"
+        }</p>
                 </div>
                 `
     }

@@ -114,7 +114,7 @@ export default function Profile() {
                                             <img
                                                 src={previewUrl}
                                                 alt="Profile"
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-contain"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-600">

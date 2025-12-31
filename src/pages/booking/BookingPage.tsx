@@ -372,7 +372,7 @@ export default function BookingPage() {
             <img
               src={event.eventImage || logo}
               alt={event.title}
-              className="w-full h-48 object-cover rounded-xl shadow-md"
+              className="w-full h-48 object-contain rounded-xl shadow-md"
             />
           </div>
 

@@ -14,6 +14,9 @@ import {
   Edit2,
   Mail,
   Phone,
+  Users,
+  ChevronDown,
+  Hash,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import SchedulingModal from "./modals/SchedulingModal";
@@ -30,7 +33,9 @@ export default function Scheduling() {
     "event-type"
   );
   const [imageFile, setImageFile] = useState<File | null>(null);
-  console.log(events);
+  const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
+
+  // console.log({ events });
 
   const [formData, setFormData] = useState({
     title: "",
@@ -101,6 +106,7 @@ export default function Scheduling() {
       duration: 30,
     });
     setIsModalOpen(true);
+    setIsCreateDropdownOpen(false);
   };
 
   const openEditModal = (event: any) => {
@@ -174,7 +180,10 @@ export default function Scheduling() {
         data.append("phoneVerify", formData.phoneVerify.toString());
         data.append("enablePhoneCheck", formData.enablePhoneCheck.toString());
         data.append("showNotes", formData.showNotes.toString());
-        data.append("showAdditionalLinks", formData.showAdditionalLinks.toString());
+        data.append(
+          "showAdditionalLinks",
+          formData.showAdditionalLinks.toString()
+        );
         data.append("slug", formData.title.toLowerCase().replace(/\s+/g, "-"));
 
         if (imageFile) {
@@ -246,13 +255,51 @@ export default function Scheduling() {
             Create events to share for people to book.
           </p>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full flex items-center gap-2 font-medium transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Create
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full flex items-center gap-2 font-medium transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCreateDropdownOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {isCreateDropdownOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setIsCreateDropdownOpen(false)}
+              ></div>
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-20 py-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <button
+                  onClick={openCreateModal}
+                  className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900">One-to-One</div>
+                    <div className="text-[10px] text-gray-500">Traditional meeting-style event</div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setIsCreateDropdownOpen(false)}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 group/group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center transition-colors">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-400">Group</div>
+                    <div className="text-[10px] text-gray-400">Coming soon</div>
+                  </div>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -283,7 +330,11 @@ export default function Scheduling() {
                   </h3>
                   <div className="relative">
                     <button
-                      onClick={() => setOpenDropdownId(openDropdownId === event.id ? null : event.id)}
+                      onClick={() =>
+                        setOpenDropdownId(
+                          openDropdownId === event.id ? null : event.id
+                        )
+                      }
                       className="p-2 rounded-full transition-all text-gray-400 hover:text-blue-600 hover:bg-blue-50"
                       title="Settings"
                     >
@@ -321,9 +372,26 @@ export default function Scheduling() {
                 </div>
 
                 <div className="space-y-3 mb-6 flex-1">
+                  <div className="flex items-center justify-between text-gray-500 text-xs mb-1">
+                    <div className="flex items-center">
+                      <Hash className="w-3.5 h-3.5 mr-1 text-gray-400" />
+                      <span className="font-mono text-[10px] bg-gray-100 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                        {event.slug}
+                      </span>
+                    </div>
+                    {event.createdAt && (
+                      <div className="flex items-center" title={`Created on ${new Date(event.createdAt).toLocaleString()}`}>
+                        <Calendar className="w-3.5 h-3.5 mr-1 text-gray-400" />
+                        <span className="text-[10px]">
+                          {new Date(event.createdAt).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center text-gray-500 text-sm">
                     <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                    <span className="font-medium">{event.duration} mins</span>
+                    <span className="font-medium text-gray-700">{event.duration} mins</span>
                   </div>
 
                   {event.host && (
@@ -337,9 +405,22 @@ export default function Scheduling() {
                     {event.location === "in-person" ? (
                       <>
                         <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                        <span className="truncate">
-                          {event.locationAddress || "In-Person"}
-                        </span>
+                        <div className="truncate flex-1">
+                          <span className="truncate block">
+                            {event.locationAddress || "In-Person Showroom"}
+                          </span>
+                          {event.locationUrl && (
+                            <a
+                              href={event.locationUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] text-blue-500 hover:underline flex items-center gap-0.5"
+                            >
+                              <ExternalLink className="w-2.5 h-2.5" />
+                              View Map
+                            </a>
+                          )}
+                        </div>
                       </>
                     ) : (
                       <>
@@ -351,7 +432,7 @@ export default function Scheduling() {
 
                   {event.availability && (
                     <div className="flex items-center text-gray-500 text-sm">
-                      <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                      <Clock className="w-4 h-4 mr-2 text-gray-400" />
                       <span className="truncate">{event.availability}</span>
                     </div>
                   )}
@@ -360,28 +441,37 @@ export default function Scheduling() {
                     {event.description || "No description provided."}
                   </p>
 
-                  {/* Verification Badges */}
-                  {(event.emailVerify || event.phoneVerify || event.enablePhoneCheck) && (
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {event.emailVerify && (
-                        <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-blue-100">
-                          <Mail className="w-3 h-3" />
-                          Email Verified
-                        </div>
-                      )}
-                      {(event.phoneVerify || event.enablePhoneCheck) && (
-                        <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-green-100">
-                          <Phone className="w-3 h-3" />
-                          {event.enablePhoneCheck ? "Phone Required" : "Phone Verified"}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Additional Links */}
+                  {/* Verification & Settings Badges */}
+                  {(event.emailVerify ||
+                    event.phoneVerify ||
+                    event.enablePhoneCheck ||
+                    event.showNotes) && (
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {event.emailVerify && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-blue-100">
+                            <Mail className="w-3 h-3" />
+                            Email Verify
+                          </div>
+                        )}
+                        {(event.phoneVerify || event.enablePhoneCheck) && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-green-100">
+                            <Phone className="w-3 h-3" />
+                            {event.enablePhoneCheck ? "Phone Verify" : "Phone Required"}
+                          </div>
+                        )}
+                        {event.showNotes && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-purple-50 text-purple-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-purple-100">
+                            <Plus className="w-3 h-3" />
+                            Notes
+                          </div>
+                        )}
+                      </div>
+                    )}
                   {event.repeaterFields && event.repeaterFields.length > 0 && (
                     <div className="pt-3 space-y-2 border-t border-gray-50">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Additional Links</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        Additional Links
+                      </p>
                       <div className="flex flex-wrap gap-2">
                         {event.repeaterFields.map((link: any, idx: number) => (
                           <div
@@ -389,7 +479,9 @@ export default function Scheduling() {
                             className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs transition-colors border border-gray-100 group/link"
                           >
                             <ExternalLink className="w-3 h-3 text-gray-400 group-hover/link:text-blue-500" />
-                            <span className="truncate max-w-[100px]">{link.name || "Link"}</span>
+                            <span className="truncate max-w-[100px]">
+                              {link.name || "Link"}
+                            </span>
                           </div>
                         ))}
                       </div>
