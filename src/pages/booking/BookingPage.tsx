@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useStore } from "../../store/StoreContext";
 import {
@@ -71,6 +71,25 @@ export default function BookingPage() {
   const [selectedTimezoneLabel, setSelectedTimezoneLabel] = useState(
     getTimezoneLongName(userTZ)
   );
+
+  useEffect(() => {
+    const detectTimezoneByIp = async () => {
+      try {
+        const response = await fetch("https://ipapi.co/json/");
+        if (!response.ok) throw new Error("Failed to fetch IP data");
+        const data = await response.json();
+        if (data.timezone) {
+          setSelectedTimezone(data.timezone);
+          setSelectedTimezoneLabel(getTimezoneLongName(data.timezone));
+        }
+      } catch (error) {
+        console.warn("IP-based timezone detection failed, falling back to system timezone:", error);
+      }
+    };
+
+    detectTimezoneByIp();
+  }, []);
+
   const [isTimezoneSelectorOpen, setIsTimezoneSelectorOpen] = useState(false);
   const [searchTz, setSearchTz] = useState("");
 
