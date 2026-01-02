@@ -301,7 +301,19 @@ ${guestMobile
 </html>
 `;
 
-const getOtpEmailHtml = (otp) => `
+const getOtpEmailHtml = (otp, type = 'booking') => {
+    let title = 'Verify Your Email';
+    let message = 'Please use the following code to confirm your email address and complete your booking.';
+
+    if (type === 'register') {
+        title = 'Complete Your Registration';
+        message = 'Please use the following code to verify your email address and create your account.';
+    } else if (type === 'reset') {
+        title = 'Reset Your Password';
+        message = 'Please use the following code to verify your identity and reset your password.';
+    }
+
+    return `
 <!DOCTYPE html>
 <html lang="en">
 ${getEmailHeader()}
@@ -310,8 +322,8 @@ ${getEmailHeader()}
         ${getEmailBrandingHeader()}
 
         <div style="padding: 50px 50px; text-align: center;">
-            <h2 class="text-main" style="color: #111827; margin: 0 0 20px 0; font-size: 24px;">Verify Your Email</h2>
-            <p class="text-sub" style="font-size: 15px; margin-bottom: 30px; color: #666;">Please use the following code to confirm your email address and complete your booking.</p>
+            <h2 class="text-main" style="color: #111827; margin: 0 0 20px 0; font-size: 24px;">${title}</h2>
+            <p class="text-sub" style="font-size: 15px; margin-bottom: 30px; color: #666;">${message}</p>
             
             <div class="otp-box" style="background-color: #fce5cd; padding: 25px; border-radius: 12px; display: inline-block; min-width: 200px; margin-bottom: 30px; border: 1px dashed #d4a373;">
                 <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #8c6239;">${otp}</span>
@@ -325,6 +337,7 @@ ${getEmailHeader()}
 </body>
 </html>
 `;
+};
 
 module.exports = {
     getGuestEmailHtml,

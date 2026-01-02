@@ -12,9 +12,7 @@ const {
 } = require("../utils/emailTemplates");
 const { upload } = require("../utils/s3");
 
-// Simple in-memory storage for OTPs (In production, use Redis or similar)
-const otpStore = new Map();
-const OTP_EXPIRY = 5 * 60 * 1000; // 5 minutes
+const { otpStore, OTP_EXPIRY } = require("../utils/otpStore");
 
 const isAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) return next();
@@ -393,7 +391,7 @@ router.delete("/bookings/:id", isAuthenticated, async (req, res) => {
 // --- OTP Verification ---
 router.post("/otp/send", async (req, res) => {
     try {
-        const { email, eventId } = req.body;
+        const { email, eventId, type } = req.body;
         if (!email) return res.status(400).json({ message: "Email is required" });
 
         // Find the host to use their OAuth connection
@@ -408,7 +406,7 @@ router.post("/otp/send", async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         otpStore.set(email, { otp, expires: Date.now() + OTP_EXPIRY });
 
-        const html = getOtpEmailHtml(otp);
+        const html = getOtpEmailHtml(otp, type);
 
         const mailOptions = { to: email, subject: "Your Verification Code", html };
 

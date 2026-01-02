@@ -9,10 +9,13 @@ import Meetings from './pages/dashboard/Meetings';
 import Contacts from './pages/dashboard/Contacts';
 import BookingPage from './pages/booking/BookingPage';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Home from './pages/Home';
 import Profile from './pages/dashboard/Profile';
+import LoadingScreen from './components/LoadingScreen';
 
 // Protected Route Guard
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -20,11 +23,7 @@ function RequireAuth({ children }: { children: JSX.Element }) {
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className='min-h-screen flex items-center justify-center'>
-        Loading...
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!user) {
@@ -34,34 +33,64 @@ function RequireAuth({ children }: { children: JSX.Element }) {
   return children;
 }
 
+// Public Route Guard (redirects to dashboard if logged in)
+function PublicRoute({ children }: { children: JSX.Element }) {
+  const { data: user, isLoading } = useCheckAuthQuery();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (user) {
+    return <Navigate to='/dashboard' replace />;
+  }
+
+  return children;
+}
+
+function AppContent() {
+  const { isLoading } = useCheckAuthQuery();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <Routes>
+      <Route path='/' element={<PublicRoute><Home /></PublicRoute>} />
+      <Route path='/login' element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path='/forgot-password' element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+
+      {/* Host Dashboard Routes (Protected) */}
+      <Route
+        path='/dashboard'
+        element={
+          <RequireAuth>
+            <DashboardLayout />
+          </RequireAuth>
+        }
+      >
+        <Route index element={<Scheduling />} />
+        <Route path='meetings' element={<Meetings />} />
+        <Route path='contacts' element={<Contacts />} />
+        <Route path='profile' element={<Profile />} />
+      </Route>
+
+      {/* Public Booking Page */}
+      <Route path='/book/:id' element={<BookingPage />} />
+      <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+      <Route path='/terms-of-service' element={<TermsOfService />} />
+    </Routes>
+  );
+}
+
+
 function App() {
   return (
     <Provider store={store}>
       <StoreProvider>
-        <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/login' element={<Login />} />
-
-          {/* Host Dashboard Routes (Protected) */}
-          <Route
-            path='/dashboard'
-            element={
-              <RequireAuth>
-                <DashboardLayout />
-              </RequireAuth>
-            }
-          >
-            <Route index element={<Scheduling />} />
-            <Route path='meetings' element={<Meetings />} />
-            <Route path='contacts' element={<Contacts />} />
-            <Route path='profile' element={<Profile />} />
-          </Route>
-
-          {/* Public Booking Page */}
-          <Route path='/book/:id' element={<BookingPage />} />
-          <Route path='/privacy-policy' element={<PrivacyPolicy />} />
-          <Route path='/terms-of-service' element={<TermsOfService />} />
-        </Routes>
+        <AppContent />
       </StoreProvider>
     </Provider>
   );

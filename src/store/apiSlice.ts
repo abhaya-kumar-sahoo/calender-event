@@ -15,6 +15,29 @@ export const apiSlice = createApi({
       query: () => "/auth/user",
       providesTags: ["User"],
     }),
+    login: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "/auth/login",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    register: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "/auth/register",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    resetPassword: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "/auth/reset-password",
+        method: "POST",
+        body,
+      }),
+    }),
     logout: builder.mutation<void, void>({
       query: () => "/auth/logout",
       invalidatesTags: ["User"],
@@ -95,7 +118,10 @@ export const apiSlice = createApi({
       invalidatesTags: ["Bookings"],
     }),
     // OTP
-    sendOtp: builder.mutation<any, { email: string; eventId?: string }>({
+    sendOtp: builder.mutation<
+      any,
+      { email: string; eventId?: string; type?: string }
+    >({
       query: (body) => ({
         url: "/api/otp/send",
         method: "POST",
@@ -114,6 +140,9 @@ export const apiSlice = createApi({
 
 export const {
   useCheckAuthQuery,
+  useLoginMutation,
+  useRegisterMutation,
+  useResetPasswordMutation,
   useLogoutMutation,
   useUpdateProfileMutation,
   useGetEventsQuery,

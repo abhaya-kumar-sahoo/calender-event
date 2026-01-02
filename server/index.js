@@ -62,8 +62,8 @@ app.use(
         proxy: true, // Important for Render/Heroku (behind load balancer)
         cookie: {
             httpOnly: true,
-            secure: false, // REQUIRED (HTTPS)
-            sameSite: "lax", // REQUIRED (cross-site)
+            secure: true, // REQUIRED (HTTPS)
+            sameSite: "none", // REQUIRED (cross-site)
             maxAge: 24 * 60 * 60 * 1000,
         },
     })

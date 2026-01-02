@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Calendar, Link as LinkIcon, Users, Menu, X, User } from 'lucide-react';
 import clsx from 'clsx';
 import { baseUrl } from '../utility';
-import { useCheckAuthQuery } from '../store/apiSlice';
+import { apiSlice, useCheckAuthQuery } from '../store/apiSlice';
 import logo_invite from '../assets/logo_invite.png';
 export default function DashboardLayout() {
   const location = useLocation();
@@ -103,7 +103,12 @@ export default function DashboardLayout() {
               </div>
             </div>
             <button
-              onClick={() => (window.location.href = baseUrl + '/auth/logout')}
+              onClick={async () => {
+                await apiSlice.util.resetApiState();
+
+                (window.location.href = baseUrl + '/auth/logout');
+
+              }}
               className='text-gray-400 hover:text-red-600 transition-colors p-2'
               title='Logout'
             >

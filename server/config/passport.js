@@ -13,24 +13,40 @@ passport.use(
         async (req, accessToken, refreshToken, profile, done) => {
             console.log('Passport Google Strategy Callback');
             try {
+                // 1. Check if user exists by Google ID
                 let user = await User.findOne({ googleId: profile.id });
 
-                if (!user) {
-                    console.log('Creating new user for Google ID:', profile.id);
-                    user = await User.create({
-                        googleId: profile.id,
-                        email: profile.emails[0].value,
-                        name: profile.displayName,
-                        picture: profile.photos ? profile.photos[0].value : null,
-                        refreshToken: refreshToken,
-                    });
-                } else if (refreshToken) {
-                    console.log('Updating refresh token for user:', user._id);
-                    user.refreshToken = refreshToken;
-                    await user.save();
-                } else {
-                    console.log('User found:', user._id);
+                if (user) {
+                    console.log('User found by Google ID:', user._id);
+                    if (refreshToken) {
+                        user.refreshToken = refreshToken;
+                        await user.save();
+                    }
+                    return done(null, user);
                 }
+
+                // 2. Check if user exists by Email
+                const email = profile.emails[0].value;
+                user = await User.findOne({ email });
+
+                if (user) {
+                    console.log('User found by email. Linking Google ID...');
+                    user.googleId = profile.id;
+                    if (!user.picture) user.picture = profile.photos ? profile.photos[0].value : null;
+                    if (refreshToken) user.refreshToken = refreshToken;
+                    await user.save();
+                    return done(null, user);
+                }
+
+                // 3. Create new user
+                console.log('Creating new user for Google ID:', profile.id);
+                user = await User.create({
+                    googleId: profile.id,
+                    email: email,
+                    name: profile.displayName,
+                    picture: profile.photos ? profile.photos[0].value : null,
+                    refreshToken: refreshToken,
+                });
 
                 return done(null, user);
             } catch (err) {
