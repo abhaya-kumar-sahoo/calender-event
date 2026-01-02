@@ -4,7 +4,7 @@ import { Calendar, Link as LinkIcon, Users, Menu, X, User } from 'lucide-react';
 import clsx from 'clsx';
 import { baseUrl } from '../utility';
 import { useCheckAuthQuery } from '../store/apiSlice';
-
+import logo_invite from '../assets/logo_invite.png';
 export default function DashboardLayout() {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -35,11 +35,9 @@ export default function DashboardLayout() {
         )}
       >
         <div className='p-6 border-b border-gray-100 flex items-center justify-between'>
-          <div className='flex items-center gap-2'>
 
-            <span className='text-4xl font-bold tracking-tight text-gray-800'>
-              Invite
-            </span>
+          <div className='flex items-center gap-2'>
+            <img src={logo_invite} alt="" className='w-44' />
           </div>
           {/* Close button for mobile */}
           <button
@@ -134,26 +132,8 @@ export default function DashboardLayout() {
         {/* Mobile Header */}
         <div className='md:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-30'>
           <div className='flex items-center gap-2'>
-            <div className='w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white'>
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                className='w-5 h-5'
-              >
-                <rect width='18' height='18' x='3' y='3' rx='2' />
-                <path d='M7 7h10v10H7z' />
-                <path d='M7 7 3 3' />
-                <path d='M17 7 21 3' />
-                <path d='M7 17 3 21' />
-                <path d='M17 17 21 21' />
-              </svg>
-            </div>
-            <span className='font-bold text-gray-900'>Invite</span>
+            <img src={logo_invite} alt="" className='w-28' />
+
           </div>
           <button
             onClick={() => setIsSidebarOpen(true)}

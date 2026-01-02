@@ -1,7 +1,9 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.GOOGLE_APP_PASSWORD,
@@ -9,6 +11,10 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendConfirmationEmail = async (to, subject, html) => {
+    console.log({
+        user: process.env.SMTP_USER,
+        pass: process.env.GOOGLE_APP_PASSWORD,
+    });
     try {
         const mailOptions = {
             from: `"Heritage Lane and Co Furniture" <${process.env.SMTP_USER}>`,

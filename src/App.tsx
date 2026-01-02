@@ -10,6 +10,8 @@ import Contacts from './pages/dashboard/Contacts';
 import BookingPage from './pages/booking/BookingPage';
 import Login from './pages/Login';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import Home from './pages/Home';
 import Profile from './pages/dashboard/Profile';
 
 // Protected Route Guard
@@ -37,7 +39,7 @@ function App() {
     <Provider store={store}>
       <StoreProvider>
         <Routes>
-          <Route path='/' element={<Navigate to='/dashboard' replace />} />
+          <Route path='/' element={<Home />} />
           <Route path='/login' element={<Login />} />
 
           {/* Host Dashboard Routes (Protected) */}
@@ -58,6 +60,7 @@ function App() {
           {/* Public Booking Page */}
           <Route path='/book/:id' element={<BookingPage />} />
           <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+          <Route path='/terms-of-service' element={<TermsOfService />} />
         </Routes>
       </StoreProvider>
     </Provider>

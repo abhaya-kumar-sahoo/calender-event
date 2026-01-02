@@ -117,7 +117,6 @@ const getGuestEmailHtml = ({
     guestMobile,
     notes,
 }) => {
-
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -233,11 +232,29 @@ ${getEmailHeader()}
     })</p>
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <p class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;">Mobile</p>
-                    <p class="text-main" style="font-size: 15px; margin: 0; font-weight: bold; color: #111827;">${guestMobile || "N/A"
-    }</p>
-                </div>
+
+
+${guestMobile
+        ? `
+              <div style="margin-bottom: 15px;">
+            <p
+                class="text-sub"
+                style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;"
+            >
+                Mobile
+            </p>
+            <p
+                class="text-main"
+                style="font-size: 15px; margin: 0; font-weight: bold; color: #111827;"
+            >
+                ${guestMobile || "N/A"}
+            </p>
+        </div>
+                `
+        : ""
+    }
+
+
 
                 ${selectedLink
         ? `
