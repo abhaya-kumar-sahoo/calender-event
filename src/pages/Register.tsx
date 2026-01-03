@@ -3,7 +3,7 @@ import { Mail, Lock, User, ArrowRight, Loader2, KeyRound, CheckCircle2 } from 'l
 import { Link, useNavigate } from 'react-router-dom';
 import { useRegisterMutation, useSendOtpMutation } from '../store/apiSlice';
 import logo from "../assets/logo_invite.png";
-import { baseUrl } from '../utility';
+import { baseUrl } from '../utils';
 
 
 

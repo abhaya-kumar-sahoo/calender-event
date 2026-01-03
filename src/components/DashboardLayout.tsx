@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Calendar, Link as LinkIcon, Users, Menu, X, User } from 'lucide-react';
 import clsx from 'clsx';
-import { baseUrl } from '../utility';
+import { baseUrl } from '../utils';
 import { apiSlice, useCheckAuthQuery } from '../store/apiSlice';
 import logo_invite from '../assets/logo_invite.png';
 export default function DashboardLayout() {

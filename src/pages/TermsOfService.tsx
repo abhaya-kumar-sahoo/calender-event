@@ -205,6 +205,26 @@ export default function TermsOfService() {
         }
     ];
 
+    const additionalSections = [
+        {
+            title: "Third-Party Integrations",
+            icon: <Globe className="w-6 h-6 text-indigo-600" />,
+            content: (
+                <div className="space-y-3">
+                    <p>Our services may integrate with third-party applications and services (such as Google Calendar or Payment Gateways) to enhance functionality.</p>
+                    <p>By using these features, you acknowledge that:</p>
+                    <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li>We are not responsible for the availability or accuracy of these external services.</li>
+                        <li>Your use of third-party services is subject to their respective terms and privacy policies.</li>
+                        <li>Specifically for Google Calendar, we access your data only to facilitate booking and scheduling functions as described in our Privacy Policy.</li>
+                    </ul>
+                </div>
+            )
+        }
+    ];
+
+    const allSections = [...sections, ...additionalSections];
+
     return (
         <div className='min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans'>
             <div className='max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden'>
@@ -226,7 +246,7 @@ export default function TermsOfService() {
                     </p>
 
                     <div className='grid gap-8'>
-                        {sections.map((section, index) => (
+                        {allSections.map((section, index) => (
                             <section key={index} className='border-b border-gray-100 pb-8 last:border-0'>
                                 <h2 className='text-xl font-bold text-gray-900 mb-4 flex items-center gap-3'>
                                     <div className="bg-indigo-50 p-2 rounded-lg">

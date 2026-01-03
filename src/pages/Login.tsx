@@ -3,7 +3,7 @@ import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLoginMutation } from '../store/apiSlice';
 import logo from "../assets/logo_invite.png";
-import { baseUrl } from '../utility';
+import { baseUrl } from '../utils';
 
 
 

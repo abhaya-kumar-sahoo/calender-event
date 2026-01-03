@@ -127,6 +127,39 @@ export default function PrivacyPolicy() {
             </div>
           </section>
 
+          {/* Google User Data Policy */}
+          <section className='bg-white p-8 rounded-2xl border-l-4 border-blue-600 shadow-sm'>
+            <h2 className='text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
+              <Shield className='w-6 h-6 text-blue-600' />
+              Google User Data & Limited Use Policy
+            </h2>
+            <div className='space-y-4 text-sm text-gray-700'>
+              <p>
+                Our application uses Google APIs when you choose to sign in with Google or connect your Google Calendar.
+              </p>
+              <div className='bg-blue-50 p-4 rounded-lg'>
+                <p className='font-semibold text-blue-900 mb-2'>Google Calendar Integration</p>
+                <p className='mb-2'>
+                  We require access to your Google Calendar (<code className='bg-blue-100 px-1 py-0.5 rounded text-blue-800 font-mono text-xs'>https://www.googleapis.com/auth/calendar.events</code>) specifically to:
+                </p>
+                <ul className='list-disc list-inside space-y-1 ml-2 text-blue-800'>
+                  <li>Create new calendar events for confirmed bookings.</li>
+                  <li>Generate Google Meet conference links for virtual meetings.</li>
+                  <li>Send email updates to attendees regarding these specific events.</li>
+                </ul>
+                <p className='mt-3 text-xs'>
+                  <strong>Note:</strong> We do not read, update, or delete your existing calendar events that were not created by our application. We do not use your Google Calendar data for advertising or any other purpose.
+                </p>
+              </div>
+              <div className='bg-gray-50 p-4 rounded-lg border border-gray-100'>
+                <p className='font-semibold text-gray-900 mb-2'>Limited Use Disclosure</p>
+                <p>
+                  Heritage Lane & Co.'s use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">Google API Services User Data Policy</a>, including the Limited Use requirements.
+                </p>
+              </div>
+            </div>
+          </section>
+
           {/* Subscriptions & Meta */}
           <section className='grid md:grid-cols-2 gap-8'>
             <div>

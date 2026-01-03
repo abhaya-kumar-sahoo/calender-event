@@ -197,6 +197,8 @@ router.post("/bookings", async (req, res) => {
                 endTime: endTime.toISOString(),
                 guestEmail,
                 additionalGuests,
+                timezone,
+                location: eventData.location // Pass location to determine if meeting link is needed
             });
             googleEventData = gEvent;
             meetingLink = gEvent.hangoutLink;

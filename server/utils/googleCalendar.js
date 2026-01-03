@@ -14,29 +14,34 @@ const createCalendarEvent = async (user, bookingData) => {
 
     oauth2Client.setCredentials({ refresh_token: user.refreshToken });
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+    // console.log({ bookingData });
 
     const event = {
         summary: bookingData.title,
         description: bookingData.notes,
         start: {
             dateTime: bookingData.startTime,
-            timeZone: 'Asia/Kolkata', // Should ideally come from user preferences
+            timeZone: bookingData.timezone || 'Asia/Kolkata',
         },
         end: {
             dateTime: bookingData.endTime,
-            timeZone: 'Asia/Kolkata',
+            timeZone: bookingData.timezone || 'Asia/Kolkata',
         },
         attendees: [
             { email: bookingData.guestEmail },
             ...(bookingData.additionalGuests || []).map(email => ({ email })),
         ],
-        conferenceData: {
+    };
+
+    // Only add conference data (Google Meet link) if it's NOT an in-person meeting
+    if (bookingData.location !== 'in-person') {
+        event.conferenceData = {
             createRequest: {
                 requestId: Math.random().toString(36).substring(7),
                 conferenceSolutionKey: { type: 'hangoutsMeet' },
             },
-        },
-    };
+        };
+    }
 
     try {
         const response = await calendar.events.insert({
