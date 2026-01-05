@@ -9,7 +9,6 @@ import Meetings from './pages/dashboard/Meetings';
 import Contacts from './pages/dashboard/Contacts';
 import BookingPage from './pages/booking/BookingPage';
 import Login from './pages/Login';
-import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -59,7 +58,7 @@ function AppContent() {
     <Routes>
       <Route path='/' element={<PublicRoute><Home /></PublicRoute>} />
       <Route path='/login' element={<PublicRoute><Login /></PublicRoute>} />
-      <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} />
+      {/* <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} /> */}
       <Route path='/forgot-password' element={<PublicRoute><ForgotPassword /></PublicRoute>} />
 
       {/* Host Dashboard Routes (Protected) */}

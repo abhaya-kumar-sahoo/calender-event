@@ -1,5 +1,8 @@
 export const isTesting = false;
 
-export const baseUrl = "https://appointmentbackend.equartistech.com";
-
-// export const baseUrl = "http://localhost:5001";
+// Use Vite's environment variable system
+// Reads VITE_NODE_ENV from .env file to determine which backend to use
+export const baseUrl =
+  import.meta.env.VITE_NODE_ENV === "production"
+    ? "https://appointmentbackend.equartistech.com"
+    : "http://localhost:5001";
