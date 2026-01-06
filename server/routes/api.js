@@ -23,8 +23,11 @@ const isAuthenticated = (req, res, next) => {
 router.get("/events", isAuthenticated, async (req, res) => {
     try {
         const events = await EventType.find({ userId: req.user._id });
+        console.log({ events });
+
         res.json(events);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -46,6 +49,25 @@ router.post(
                     console.error("Failed to parse repeaterFields", e);
                 }
             }
+
+            // Parse availability if it's a JSON string
+            if (eventData.availability && typeof eventData.availability === "string") {
+                try {
+                    eventData.availability = JSON.parse(eventData.availability);
+                } catch (e) {
+                    console.error("Failed to parse availability", e);
+                }
+            }
+
+            // Parse availabilities if it's a JSON string
+            if (eventData.availabilities && typeof eventData.availabilities === "string") {
+                try {
+                    eventData.availabilities = JSON.parse(eventData.availabilities);
+                } catch (e) {
+                    console.error("Failed to parse availabilities", e);
+                }
+            }
+
             if (req.file) {
                 eventData.eventImage = req.file.location;
             }
@@ -85,6 +107,25 @@ router.put(
                     console.error("Failed to parse repeaterFields", e);
                 }
             }
+
+            // Parse availability if it's a JSON string
+            if (updateData.availability && typeof updateData.availability === "string") {
+                try {
+                    updateData.availability = JSON.parse(updateData.availability);
+                } catch (e) {
+                    console.error("Failed to parse availability", e);
+                }
+            }
+
+            // Parse availabilities if it's a JSON string
+            if (updateData.availabilities && typeof updateData.availabilities === "string") {
+                try {
+                    updateData.availabilities = JSON.parse(updateData.availabilities);
+                } catch (e) {
+                    console.error("Failed to parse availabilities", e);
+                }
+            }
+
             if (req.file) {
                 updateData.eventImage = req.file.location;
             }
@@ -166,6 +207,7 @@ router.post("/bookings", async (req, res) => {
                 host: eventType.host,
                 eventImage: eventType.eventImage,
                 availability: eventType.availability,
+                availabilities: eventType.availabilities,
             };
         } else {
             // Quick meeting flow: Must be authenticated to act as host

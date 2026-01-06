@@ -30,7 +30,27 @@ interface SchedulingModalProps {
         locationUrl: string;
         host: string;
         eventImage: string;
-        availability: string;
+        availabilities: {
+            note: string;
+            weeklyHours: Array<{
+                day:
+                | "sunday"
+                | "monday"
+                | "tuesday"
+                | "wednesday"
+                | "thursday"
+                | "friday"
+                | "saturday";
+                isAvailable: boolean;
+                timeRanges: Array<{ start: string; end: string }>;
+            }>;
+            dateOverrides: Array<{
+                date: string;
+                isAvailable: boolean;
+                timeRanges: Array<{ start: string; end: string }>;
+            }>;
+            timezone: string;
+        };
         repeaterFields: { name: string; url: string }[];
         emailVerify: boolean;
         phoneVerify: boolean;
@@ -94,8 +114,8 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                         type="button"
                         onClick={() => setActiveTab("event-type")}
                         className={`flex-1 py-3 text-sm font-bold transition-all border-b-2 ${activeTab === "event-type"
-                            ? "border-blue-600 text-blue-600 bg-blue-50/50"
-                            : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                ? "border-blue-600 text-blue-600 bg-blue-50/50"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                             }`}
                     >
                         Event Type
@@ -104,8 +124,8 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                         type="button"
                         onClick={() => setActiveTab("quick-booking")}
                         className={`flex-1 py-3 text-sm font-bold transition-all border-b-2 ${activeTab === "quick-booking"
-                            ? "border-blue-600 text-blue-600 bg-blue-50/50"
-                            : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                ? "border-blue-600 text-blue-600 bg-blue-50/50"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                             }`}
                     >
                         Quick Booking
@@ -244,87 +264,189 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
-                                            <Clock className="w-4 h-4 text-blue-500" />
-                                            Availability Note
-                                        </label>
-                                        <input
-                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 transition-all bg-gray-50/50 hover:bg-white placeholder:text-xs"
-                                            placeholder="e.g. Mon-Fri, 9am-5pm"
-                                            value={formData.availability}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    availability: e.target.value,
-                                                })
-                                            }
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
-                                            <Plus className="w-4 h-4 text-blue-500" />
-                                            Event Image
-                                        </label>
-                                        <label className="flex items-center justify-between w-full px-4 py-2.5 rounded-xl border border-dashed border-gray-300 bg-gray-50/50 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
-                                            <span className="text-xs text-gray-500 truncate max-w-[120px]">
-                                                {imageFile ? imageFile.name : "Select image"}
-                                            </span>
-                                            <div className="flex items-center gap-2">
-                                                {formData.eventImage && (
-                                                    <img
-                                                        src={formData.eventImage}
-                                                        alt="Preview"
-                                                        className="h-6 w-6 object-cover rounded shadow-sm"
-                                                    />
-                                                )}
-                                                <span className="text-xs font-bold text-blue-600">
-                                                    Browse
-                                                </span>
-                                            </div>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        setImageFile(file);
-                                                        const reader = new FileReader();
-                                                        reader.onloadend = () => {
-                                                            setFormData({
-                                                                ...formData,
-                                                                eventImage: reader.result as string,
-                                                            });
-                                                        };
-                                                        reader.readAsDataURL(file);
-                                                    }
-                                                }}
-                                            />
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label
-                                        htmlFor="description"
-                                        className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5"
-                                    >
-                                        <Plus className="w-4 h-4 text-blue-500" />
-                                        About this Event
+                                {/* Weekly Availability Configuration */}
+                                <div className="col-span-2">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                                        <Clock className="w-4 h-4 text-blue-500" />
+                                        Weekly Availability
                                     </label>
-                                    <textarea
-                                        id="description"
-                                        rows={3}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-gray-900 transition-all bg-gray-50/50 hover:bg-white placeholder:text-xs"
-                                        placeholder="Briefly describe what this event is about..."
-                                        value={formData.description}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, description: e.target.value })
-                                        }
-                                    />
+                                    <div className="bg-gray-50/50 rounded-xl border border-gray-200 p-4 space-y-2">
+                                        <p className="text-xs text-gray-500 mb-3">
+                                            Set your available hours for each day
+                                        </p>
+                                        {formData.availabilities.weeklyHours.map(
+                                            (dayConfig, index) => (
+                                                <div
+                                                    key={dayConfig.day}
+                                                    className="flex items-center gap-3 p-2.5 bg-white rounded-lg border border-gray-100 hover:border-blue-200 transition-colors"
+                                                >
+                                                    <div className="w-20">
+                                                        <span className="text-sm font-medium text-gray-700 capitalize">
+                                                            {dayConfig.day.slice(0, 3)}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex-1 flex items-center gap-2 text-sm text-black">
+                                                        <select
+                                                            value={dayConfig.timeRanges[0]?.start || "09:00"}
+                                                            onChange={(e) => {
+                                                                const newWeeklyHours =
+                                                                    formData.availabilities.weeklyHours.map(
+                                                                        (day, i) => {
+                                                                            if (i === index) {
+                                                                                return {
+                                                                                    ...day,
+                                                                                    timeRanges:
+                                                                                        day.timeRanges.length > 0
+                                                                                            ? [
+                                                                                                {
+                                                                                                    ...day.timeRanges[0],
+                                                                                                    start: e.target.value,
+                                                                                                },
+                                                                                            ]
+                                                                                            : [
+                                                                                                {
+                                                                                                    start: e.target.value,
+                                                                                                    end: "17:00",
+                                                                                                },
+                                                                                            ],
+                                                                                };
+                                                                            }
+                                                                            return day;
+                                                                        }
+                                                                    );
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    availabilities: {
+                                                                        ...formData.availabilities,
+                                                                        weeklyHours: newWeeklyHours,
+                                                                    },
+                                                                });
+                                                            }}
+                                                            disabled={!dayConfig.isAvailable}
+                                                            className="px-2 py-1 text-xs rounded border border-gray-300 focus:ring-1 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                                                        >
+                                                            {Array.from({ length: 24 }, (_, i) => (
+                                                                <option
+                                                                    key={i}
+                                                                    value={`${i.toString().padStart(2, "0")}:00`}
+                                                                >
+                                                                    {i === 0
+                                                                        ? "12:00 AM"
+                                                                        : i < 12
+                                                                            ? `${i}:00 AM`
+                                                                            : i === 12
+                                                                                ? "12:00 PM"
+                                                                                : `${i - 12}:00 PM`}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <span className="text-gray-400 text-xs">to</span>
+                                                        <select
+                                                            value={dayConfig.timeRanges[0]?.end || "17:00"}
+                                                            onChange={(e) => {
+                                                                const newWeeklyHours =
+                                                                    formData.availabilities.weeklyHours.map(
+                                                                        (day, i) => {
+                                                                            if (i === index) {
+                                                                                return {
+                                                                                    ...day,
+                                                                                    timeRanges:
+                                                                                        day.timeRanges.length > 0
+                                                                                            ? [
+                                                                                                {
+                                                                                                    ...day.timeRanges[0],
+                                                                                                    end: e.target.value,
+                                                                                                },
+                                                                                            ]
+                                                                                            : [
+                                                                                                {
+                                                                                                    start: "09:00",
+                                                                                                    end: e.target.value,
+                                                                                                },
+                                                                                            ],
+                                                                                };
+                                                                            }
+                                                                            return day;
+                                                                        }
+                                                                    );
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    availabilities: {
+                                                                        ...formData.availabilities,
+                                                                        weeklyHours: newWeeklyHours,
+                                                                    },
+                                                                });
+                                                            }}
+                                                            disabled={!dayConfig.isAvailable}
+                                                            className="px-2 py-1 text-xs rounded border border-gray-300 focus:ring-1 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                                                        >
+                                                            {Array.from({ length: 24 }, (_, i) => (
+                                                                <option
+                                                                    key={i}
+                                                                    value={`${i.toString().padStart(2, "0")}:00`}
+                                                                >
+                                                                    {i === 0
+                                                                        ? "12:00 AM"
+                                                                        : i < 12
+                                                                            ? `${i}:00 AM`
+                                                                            : i === 12
+                                                                                ? "12:00 PM"
+                                                                                : `${i - 12}:00 PM`}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <label className="flex items-center cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={dayConfig.isAvailable}
+                                                            onChange={(e) => {
+                                                                const newWeeklyHours =
+                                                                    formData.availabilities.weeklyHours.map(
+                                                                        (day, i) => {
+                                                                            if (i === index) {
+                                                                                return {
+                                                                                    ...day,
+                                                                                    isAvailable: e.target.checked,
+                                                                                };
+                                                                            }
+                                                                            return day;
+                                                                        }
+                                                                    );
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    availabilities: {
+                                                                        ...formData.availabilities,
+                                                                        weeklyHours: newWeeklyHours,
+                                                                    },
+                                                                });
+                                                            }}
+                                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                        />
+                                                    </label>
+                                                </div>
+                                            )
+                                        )}
+                                        <div className="pt-3 border-t border-gray-200 mt-3">
+                                            <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                                                Display Note (Optional)
+                                            </label>
+                                            <input
+                                                className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none text-sm text-gray-900 placeholder:text-xs"
+                                                placeholder="e.g., 'Available Mon-Fri, 9am-5pm IST'"
+                                                value={formData.availabilities.note}
+                                                onChange={(e) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        availabilities: {
+                                                            ...formData.availabilities,
+                                                            note: e.target.value,
+                                                        },
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -405,7 +527,70 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                                         ))}
                                     </div>
                                 </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                                            <Plus className="w-4 h-4 text-blue-500" />
+                                            Event Image
+                                        </label>
+                                        <label className="flex items-center justify-between w-full px-4 py-2.5 rounded-xl border border-dashed border-gray-300 bg-gray-50/50 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
+                                            <span className="text-xs text-gray-500 truncate max-w-[120px]">
+                                                {imageFile ? imageFile.name : "Select image"}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                {formData.eventImage && (
+                                                    <img
+                                                        src={formData.eventImage}
+                                                        alt="Preview"
+                                                        className="h-6 w-6 object-cover rounded shadow-sm"
+                                                    />
+                                                )}
+                                                <span className="text-xs font-bold text-blue-600">
+                                                    Browse
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        setImageFile(file);
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            setFormData({
+                                                                ...formData,
+                                                                eventImage: reader.result as string,
+                                                            });
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
 
+                                <div>
+                                    <label
+                                        htmlFor="description"
+                                        className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5"
+                                    >
+                                        <Plus className="w-4 h-4 text-blue-500" />
+                                        About this Event
+                                    </label>
+                                    <textarea
+                                        id="description"
+                                        rows={3}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-gray-900 transition-all bg-gray-50/50 hover:bg-white placeholder:text-xs"
+                                        placeholder="Briefly describe what this event is about..."
+                                        value={formData.description}
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, description: e.target.value })
+                                        }
+                                    />
+                                </div>
                                 <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-200 space-y-4">
                                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                                         <Plus className="w-4 h-4 text-blue-500" />

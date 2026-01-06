@@ -11,7 +11,28 @@ export interface EventType {
   locationUrl?: string;
   host?: string;
   eventImage?: string;
-  availability?: string;
+  availability?: string; // Legacy field for backward compatibility
+  availabilities?: {
+    note?: string;
+    weeklyHours?: Array<{
+      day:
+        | "sunday"
+        | "monday"
+        | "tuesday"
+        | "wednesday"
+        | "thursday"
+        | "friday"
+        | "saturday";
+      isAvailable: boolean;
+      timeRanges: Array<{ start: string; end: string }>;
+    }>;
+    dateOverrides?: Array<{
+      date: string;
+      isAvailable: boolean;
+      timeRanges: Array<{ start: string; end: string }>;
+    }>;
+    timezone?: string;
+  };
   repeaterFields?: { name: string; url: string }[];
   emailVerify?: boolean;
   phoneVerify?: boolean;
@@ -39,7 +60,7 @@ export interface Booking {
   locationUrl?: string;
   host?: string;
   eventImage?: string;
-  availability?: string;
+  availabilities?: string | object;
   timezone?: string;
   selectedLink?: string;
 }

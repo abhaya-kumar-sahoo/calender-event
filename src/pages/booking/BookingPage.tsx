@@ -36,6 +36,7 @@ import logo from "../../assets/logo.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { getTimezones, formatTimeInTimezone } from "../../utils/timezoneData";
 import { Search, CheckCircle2, AlertCircle } from "lucide-react";
+import { isDateAvailable, getAvailableTimeSlots } from "../../utils/availabilityHelper";
 
 type BookingStep = "date-time" | "form" | "confirmation";
 const getTimezoneLongName = (tz: string): string => {
@@ -147,50 +148,16 @@ export default function BookingPage() {
 
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
-  // Time Slots Generation with Timezone Awareness
+  // Time Slots Generation with Timezone Awareness and Availability Filtering
   const generateTimeSlots = () => {
-    const slots: string[] = [];
     if (!selectedDate || !event) return [];
 
-    // Use host's saved timezone or fallback to India/Melbourne based on context
-    const hostTimezone = (event.userId as any)?.timezone || "Asia/Kolkata";
-
-    for (let h = 10; h < 19; h++) {
-      [0, 30].forEach(m => {
-        // Create a date representing h:m in the host's timezone
-        // A simple way to get the UTC date for a specific time in a specific timezone
-        // is to use toLocaleString to get the offset at that time.
-
-        const dateStr = format(selectedDate, "yyyy-MM-dd");
-        const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00`;
-
-        // We'll use a dummy date to find the offset for the host timezone at this specific date/time
-        // This handles DST correctly.
-        const dummy = new Date(`${dateStr}T${timeStr}`);
-        const offsetPart = new Intl.DateTimeFormat('en-US', {
-          timeZone: hostTimezone,
-          timeZoneName: 'longOffset'
-        }).formatToParts(dummy).find(p => p.type === 'timeZoneName')?.value || 'GMT+11:00';
-
-        // offsetPart is like "GMT+11:00"
-        const offset = offsetPart.replace('GMT', '');
-        const iso = `${dateStr}T${timeStr}${offset}`;
-        const date = new Date(iso);
-
-        // Convert to guest's selected timezone
-        const guestTimeStr = new Intl.DateTimeFormat('en-US', {
-          timeZone: selectedTimezone,
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        }).format(date);
-
-        if (!slots.includes(guestTimeStr)) {
-          slots.push(guestTimeStr);
-        }
-      });
-    }
-    return slots;
+    // Use the availability helper to get available time slots
+    return getAvailableTimeSlots(
+      selectedDate,
+      event.availabilities,
+      selectedTimezone
+    );
   };
 
   const timeSlots = generateTimeSlots();
@@ -479,17 +446,22 @@ export default function BookingPage() {
                     const isPast = isBefore(day, minDate);
                     const isCurrentMonth = isSameMonth(day, currentMonth);
 
+                    // Check if date is available based on event availability settings
+                    const dateAvailable = isDateAvailable(day, event.availabilities as any);
+                    const isUnavailable = !isPast && !dateAvailable;
+
                     return (
                       <button
                         key={day.toISOString()}
                         onClick={() => handleDateClick(day)}
-                        disabled={isPast}
+                        disabled={isPast || isUnavailable}
                         className={clsx(
                           "aspect-square rounded-full flex items-center justify-center text-sm font-medium transition-colors relative",
                           !isCurrentMonth && "invisible", // or text-gray-300
-                          isPast &&
+                          (isPast || isUnavailable) &&
                           "text-gray-300 cursor-not-allowed line-through decoration-gray-300",
                           !isPast &&
+                          !isUnavailable &&
                           isCurrentMonth &&
                           !isSelected &&
                           "text-blue-600 bg-blue-50 hover:bg-blue-100 font-bold",

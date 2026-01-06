@@ -13,6 +13,38 @@ const eventTypeSchema = new mongoose.Schema({
     host: String,
     eventImage: String, // Base64 or URL
     availability: String,
+    availabilities: {
+        // Legacy string field for backward compatibility
+        note: String,
+        // Structured availability data
+        weeklyHours: [{
+            day: { type: String, enum: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] },
+            isAvailable: { type: Boolean, default: true },
+            timeRanges: [{
+                start: String, // e.g., "09:00"
+                end: String    // e.g., "17:00"
+            }]
+        }],
+        dateOverrides: [{
+            date: String, // ISO date string YYYY-MM-DD
+            isAvailable: { type: Boolean, default: false },
+            timeRanges: [{
+                start: String,
+                end: String
+            }]
+        }],
+        timezone: { type: String, default: 'Asia/Kolkata' }
+    },
+    // Meeting limits
+    meetingLimits: {
+        enabled: { type: Boolean, default: false },
+        maxPerSlot: { type: Number, default: 1 }
+    },
+    // Group meetings
+    groupMeeting: {
+        enabled: { type: Boolean, default: false },
+        maxGuests: { type: Number, default: 10 }
+    },
     repeaterFields: [{
         name: String,
         url: String

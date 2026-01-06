@@ -47,7 +47,40 @@ export default function Scheduling() {
     locationUrl: "",
     host: "",
     eventImage: "", // URL from backend
-    availability: "",
+    availabilities: {
+      note: "",
+      weeklyHours: [
+        {
+          day: "monday" as const,
+          isAvailable: true,
+          timeRanges: [{ start: "09:00", end: "17:00" }],
+        },
+        {
+          day: "tuesday" as const,
+          isAvailable: true,
+          timeRanges: [{ start: "09:00", end: "17:00" }],
+        },
+        {
+          day: "wednesday" as const,
+          isAvailable: true,
+          timeRanges: [{ start: "09:00", end: "17:00" }],
+        },
+        {
+          day: "thursday" as const,
+          isAvailable: true,
+          timeRanges: [{ start: "09:00", end: "17:00" }],
+        },
+        {
+          day: "friday" as const,
+          isAvailable: true,
+          timeRanges: [{ start: "09:00", end: "17:00" }],
+        },
+        { day: "saturday" as const, isAvailable: false, timeRanges: [] },
+        { day: "sunday" as const, isAvailable: false, timeRanges: [] },
+      ],
+      dateOverrides: [],
+      timezone: "Asia/Kolkata",
+    },
     repeaterFields: [] as { name: string; url: string }[],
     emailVerify: false,
     phoneVerify: false,
@@ -86,7 +119,40 @@ export default function Scheduling() {
       locationUrl: "",
       host: "",
       eventImage: "",
-      availability: "",
+      availabilities: {
+        note: "",
+        weeklyHours: [
+          {
+            day: "monday",
+            isAvailable: true,
+            timeRanges: [{ start: "09:00", end: "17:00" }],
+          },
+          {
+            day: "tuesday",
+            isAvailable: true,
+            timeRanges: [{ start: "09:00", end: "17:00" }],
+          },
+          {
+            day: "wednesday",
+            isAvailable: true,
+            timeRanges: [{ start: "09:00", end: "17:00" }],
+          },
+          {
+            day: "thursday",
+            isAvailable: true,
+            timeRanges: [{ start: "09:00", end: "17:00" }],
+          },
+          {
+            day: "friday",
+            isAvailable: true,
+            timeRanges: [{ start: "09:00", end: "17:00" }],
+          },
+          { day: "saturday", isAvailable: false, timeRanges: [] },
+          { day: "sunday", isAvailable: false, timeRanges: [] },
+        ],
+        dateOverrides: [],
+        timezone: "Asia/Kolkata",
+      },
       repeaterFields: [],
       emailVerify: false,
       phoneVerify: false,
@@ -122,7 +188,40 @@ export default function Scheduling() {
       locationUrl: event.locationUrl || "",
       host: event.host || "",
       eventImage: event.eventImage || "",
-      availability: event.availability || "",
+      availabilities: event.availabilities || {
+        note: "",
+        weeklyHours: [
+          {
+            day: "monday",
+            isAvailable: true,
+            timeRanges: [{ start: "09:00", end: "17:00" }],
+          },
+          {
+            day: "tuesday",
+            isAvailable: true,
+            timeRanges: [{ start: "09:00", end: "17:00" }],
+          },
+          {
+            day: "wednesday",
+            isAvailable: true,
+            timeRanges: [{ start: "09:00", end: "17:00" }],
+          },
+          {
+            day: "thursday",
+            isAvailable: true,
+            timeRanges: [{ start: "09:00", end: "17:00" }],
+          },
+          {
+            day: "friday",
+            isAvailable: true,
+            timeRanges: [{ start: "09:00", end: "17:00" }],
+          },
+          { day: "saturday", isAvailable: false, timeRanges: [] },
+          { day: "sunday", isAvailable: false, timeRanges: [] },
+        ],
+        dateOverrides: [],
+        timezone: "Asia/Kolkata",
+      },
       repeaterFields: event.repeaterFields || [],
       emailVerify: !!event.emailVerify,
       phoneVerify: !!event.phoneVerify,
@@ -174,7 +273,7 @@ export default function Scheduling() {
         data.append("locationAddress", formData.locationAddress);
         data.append("locationUrl", formData.locationUrl);
         data.append("host", formData.host);
-        data.append("availability", formData.availability);
+        data.append("availabilities", JSON.stringify(formData.availabilities));
         data.append("repeaterFields", JSON.stringify(formData.repeaterFields));
         data.append("emailVerify", formData.emailVerify.toString());
         data.append("phoneVerify", formData.phoneVerify.toString());
@@ -262,7 +361,10 @@ export default function Scheduling() {
           >
             <Plus className="w-4 h-4" />
             Create
-            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCreateDropdownOpen ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-200 ${isCreateDropdownOpen ? "rotate-180" : ""
+                }`}
+            />
           </button>
 
           {isCreateDropdownOpen && (
@@ -280,8 +382,12 @@ export default function Scheduling() {
                     <User className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-gray-900">One-to-One</div>
-                    <div className="text-[10px] text-gray-500">Traditional meeting-style event</div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      One-to-One
+                    </div>
+                    <div className="text-[10px] text-gray-500">
+                      Traditional meeting-style event
+                    </div>
                   </div>
                 </button>
                 <button
@@ -292,7 +398,9 @@ export default function Scheduling() {
                     <Users className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-gray-400">Group</div>
+                    <div className="text-sm font-semibold text-gray-400">
+                      Group
+                    </div>
                     <div className="text-[10px] text-gray-400">Coming soon</div>
                   </div>
                 </button>
@@ -380,10 +488,18 @@ export default function Scheduling() {
                       </span>
                     </div>
                     {event.createdAt && (
-                      <div className="flex items-center" title={`Created on ${new Date(event.createdAt).toLocaleString()}`}>
+                      <div
+                        className="flex items-center"
+                        title={`Created on ${new Date(
+                          event.createdAt
+                        ).toLocaleString()}`}
+                      >
                         <Calendar className="w-3.5 h-3.5 mr-1 text-gray-400" />
                         <span className="text-[10px]">
-                          {new Date(event.createdAt).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}
+                          {new Date(event.createdAt).toLocaleDateString(
+                            "en-US",
+                            { month: "short", day: "numeric" }
+                          )}
                         </span>
                       </div>
                     )}
@@ -391,7 +507,9 @@ export default function Scheduling() {
 
                   <div className="flex items-center text-gray-500 text-sm">
                     <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                    <span className="font-medium text-gray-700">{event.duration} mins</span>
+                    <span className="font-medium text-gray-700">
+                      {event.duration} mins
+                    </span>
                   </div>
 
                   {event.host && (
@@ -430,10 +548,12 @@ export default function Scheduling() {
                     )}
                   </div>
 
-                  {event.availability && (
+                  {event.availabilities && (
                     <div className="flex items-center text-gray-500 text-sm">
                       <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                      <span className="truncate">{event.availability}</span>
+                      <span className="truncate">
+                        {event.availabilities.note || "Custom hours set"}
+                      </span>
                     </div>
                   )}
 
@@ -456,7 +576,9 @@ export default function Scheduling() {
                         {(event.phoneVerify || event.enablePhoneCheck) && (
                           <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-green-100">
                             <Phone className="w-3 h-3" />
-                            {event.enablePhoneCheck ? "Phone Verify" : "Phone Required"}
+                            {event.enablePhoneCheck
+                              ? "Phone Verify"
+                              : "Phone Required"}
                           </div>
                         )}
                         {event.showNotes && (
