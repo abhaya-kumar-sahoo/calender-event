@@ -81,6 +81,11 @@ export default function Scheduling() {
       dateOverrides: [],
       timezone: "Asia/Kolkata",
     },
+    groupMeeting: {
+      enabled: false,
+      maxGuests: 10,
+      showRemainingSpots: true,
+    },
     repeaterFields: [] as { name: string; url: string }[],
     emailVerify: false,
     phoneVerify: false,
@@ -152,6 +157,11 @@ export default function Scheduling() {
         ],
         dateOverrides: [],
         timezone: "Asia/Kolkata",
+      },
+      groupMeeting: {
+        enabled: false,
+        maxGuests: 10,
+        showRemainingSpots: true,
       },
       repeaterFields: [],
       emailVerify: false,
@@ -228,6 +238,11 @@ export default function Scheduling() {
       enablePhoneCheck: !!event.enablePhoneCheck,
       showNotes: event.showNotes !== false,
       showAdditionalLinks: event.showAdditionalLinks !== false,
+      groupMeeting: event.groupMeeting || {
+        enabled: false,
+        maxGuests: 10,
+        showRemainingSpots: true,
+      },
     });
     setImageFile(null);
     setIsModalOpen(true);
@@ -274,6 +289,7 @@ export default function Scheduling() {
         data.append("locationUrl", formData.locationUrl);
         data.append("host", formData.host);
         data.append("availabilities", JSON.stringify(formData.availabilities));
+        data.append("groupMeeting", JSON.stringify(formData.groupMeeting));
         data.append("repeaterFields", JSON.stringify(formData.repeaterFields));
         data.append("emailVerify", formData.emailVerify.toString());
         data.append("phoneVerify", formData.phoneVerify.toString());

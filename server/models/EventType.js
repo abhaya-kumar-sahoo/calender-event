@@ -43,7 +43,8 @@ const eventTypeSchema = new mongoose.Schema({
     // Group meetings
     groupMeeting: {
         enabled: { type: Boolean, default: false },
-        maxGuests: { type: Number, default: 10 }
+        maxGuests: { type: Number, default: 10 },
+        showRemainingSpots: { type: Boolean, default: true }
     },
     repeaterFields: [{
         name: String,

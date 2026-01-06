@@ -33,6 +33,11 @@ export interface EventType {
     }>;
     timezone?: string;
   };
+  groupMeeting?: {
+    enabled: boolean;
+    maxGuests: number;
+    showRemainingSpots: boolean;
+  };
   repeaterFields?: { name: string; url: string }[];
   emailVerify?: boolean;
   phoneVerify?: boolean;

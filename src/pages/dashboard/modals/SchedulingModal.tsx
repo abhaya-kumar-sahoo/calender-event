@@ -12,6 +12,7 @@ import {
     Plus,
     Trash2,
     Mail,
+    Users,
 } from "lucide-react";
 
 interface SchedulingModalProps {
@@ -57,6 +58,11 @@ interface SchedulingModalProps {
         enablePhoneCheck: boolean;
         showNotes: boolean;
         showAdditionalLinks: boolean;
+        groupMeeting: {
+            enabled: boolean;
+            maxGuests: number;
+            showRemainingSpots: boolean;
+        };
     };
     setFormData: (data: any) => void;
     quickBookingData: {
@@ -591,6 +597,87 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                                         }
                                     />
                                 </div>
+                                <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-200 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                                                <Users className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-gray-900 text-sm">
+                                                    Group Meeting
+                                                </h4>
+                                                <p className="text-xs text-gray-500">
+                                                    Allow multiple people to book the same time slot
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={formData.groupMeeting?.enabled || false}
+                                                onChange={(e) => {
+                                                    setFormData({
+                                                        ...formData,
+                                                        groupMeeting: {
+                                                            ...formData.groupMeeting,
+                                                            enabled: e.target.checked,
+                                                        },
+                                                    });
+                                                }}
+                                            />
+                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+
+                                    {formData.groupMeeting?.enabled && (
+                                        <div className="ml-14 space-y-4 animate-in slide-in-from-top-2 fade-in duration-200">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                                                    Maximum Guests per Slot
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min="2"
+                                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                                    value={formData.groupMeeting.maxGuests}
+                                                    onChange={(e) => {
+                                                        const val = parseInt(e.target.value);
+                                                        setFormData({
+                                                            ...formData,
+                                                            groupMeeting: {
+                                                                ...formData.groupMeeting,
+                                                                maxGuests: isNaN(val) ? 2 : Math.max(2, val),
+                                                            },
+                                                        });
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <label className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-all cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition-all"
+                                                    checked={formData.groupMeeting.showRemainingSpots}
+                                                    onChange={(e) => {
+                                                        setFormData({
+                                                            ...formData,
+                                                            groupMeeting: {
+                                                                ...formData.groupMeeting,
+                                                                showRemainingSpots: e.target.checked,
+                                                            },
+                                                        });
+                                                    }}
+                                                />
+                                                <span className="text-sm text-gray-700 group-hover:text-blue-700 transition-colors">
+                                                    Show remaining spots on booking page
+                                                </span>
+                                            </label>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-200 space-y-4">
                                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                                         <Plus className="w-4 h-4 text-blue-500" />

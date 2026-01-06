@@ -3,8 +3,10 @@ import { useParams, Link } from "react-router-dom";
 import { useStore } from "../../store/StoreContext";
 import {
   useGetPublicEventQuery,
+  useGetSlotAvailabilityQuery,
+  useGetMonthAvailabilityQuery,
   useSendOtpMutation,
-  useVerifyOtpMutation
+  useVerifyOtpMutation,
 } from "../../store/apiSlice";
 import {
   format,
@@ -36,7 +38,10 @@ import logo from "../../assets/logo.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { getTimezones, formatTimeInTimezone } from "../../utils/timezoneData";
 import { Search, CheckCircle2, AlertCircle } from "lucide-react";
-import { isDateAvailable, getAvailableTimeSlots } from "../../utils/availabilityHelper";
+import {
+  isDateAvailable,
+  getAvailableTimeSlots,
+} from "../../utils/availabilityHelper";
 
 type BookingStep = "date-time" | "form" | "confirmation";
 const getTimezoneLongName = (tz: string): string => {
@@ -60,13 +65,16 @@ export default function BookingPage() {
 
   const [sendOtp] = useSendOtpMutation();
   const [verifyOtp] = useVerifyOtpMutation();
-  // console.log({ event });
+
+  console.log({ event });
 
   const [step, setStep] = useState<BookingStep>("date-time");
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [selectedTimezone, setSelectedTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const [selectedTimezone, setSelectedTimezone] = useState(
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
   const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const [selectedTimezoneLabel, setSelectedTimezoneLabel] = useState(
@@ -84,7 +92,10 @@ export default function BookingPage() {
           setSelectedTimezoneLabel(getTimezoneLongName(data.timezone));
         }
       } catch (error) {
-        console.warn("IP-based timezone detection failed, falling back to system timezone:", error);
+        console.warn(
+          "IP-based timezone detection failed, falling back to system timezone:",
+          error
+        );
       }
     };
 
@@ -113,6 +124,34 @@ export default function BookingPage() {
   const [guestEmails, setGuestEmails] = useState<string[]>([]);
   const [currentGuestInput, setCurrentGuestInput] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  // Calendar Logic
+  const { data: slotAvailability, isFetching: isCheckingAvailability, refetch, isLoading: isCheckingAvailabilityLoading } =
+    useGetSlotAvailabilityQuery(
+      {
+        id: id || "",
+        date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
+        timezone: selectedTimezone,
+      },
+      {
+        skip: !id || !selectedDate || !event?.groupMeeting?.enabled,
+      }
+    );
+  // console.log(slotAvailability);
+
+  // Poll for monthly availability
+  const { data: monthAvailability } = useGetMonthAvailabilityQuery(
+    {
+      id: id || "",
+      year: currentMonth.getFullYear(),
+      month: currentMonth.getMonth(),
+      timezone: selectedTimezone,
+    },
+    {
+      skip: !id || !event?.groupMeeting?.enabled,
+      pollingInterval: 30000, // Poll every 30s to keep updated
+    }
+  );
+
 
   if (isLoading) {
     return (
@@ -140,7 +179,6 @@ export default function BookingPage() {
     );
   }
 
-  // Calendar Logic
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart);
@@ -149,15 +187,41 @@ export default function BookingPage() {
   const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
 
   // Time Slots Generation with Timezone Awareness and Availability Filtering
+  const convertTo24Hour = (time12h: string) => {
+    const [time, modifier] = time12h.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+    if (modifier === "PM" && hours < 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
   const generateTimeSlots = () => {
     if (!selectedDate || !event) return [];
 
     // Use the availability helper to get available time slots
-    return getAvailableTimeSlots(
+    const slots = getAvailableTimeSlots(
       selectedDate,
       event.availabilities,
-      selectedTimezone
+      selectedTimezone,
+      event.duration // Pass duration as interval
     );
+
+    // If group meeting enabled and we have availability data, filter slots
+    if (event.groupMeeting?.enabled && slotAvailability?.slots) {
+      return slots.filter((time) => {
+        const time24 = convertTo24Hour(time);
+        const slotData = slotAvailability.slots.find(
+          (s: any) => s.time === time24
+        );
+        // If slot is full, filter it out
+        if (slotData?.isFull) return false;
+        return true;
+      });
+    }
+
+    return slots;
   };
 
   const timeSlots = generateTimeSlots();
@@ -201,15 +265,17 @@ export default function BookingPage() {
     // Combine date and time (selectedTime is now "10:30 AM" etc. in guest timezone)
     const bookingDate = new Date(selectedDate);
     // Parsing "10:30 AM" or "10:30 PM"
-    const [time, modifier] = selectedTime.split(' ');
-    let [hours, minutes] = time.split(':').map(Number);
-    if (modifier === 'PM' && hours < 12) hours += 12;
-    if (modifier === 'AM' && hours === 12) hours = 0;
+    const [time, modifier] = selectedTime.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+    if (modifier === "PM" && hours < 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
 
     // This bookingDate is still in "local" time of where the browser is
     // We need to interpret this H:M as being in 'selectedTimezone'
     const dateStr = format(bookingDate, "yyyy-MM-dd");
-    const isoStr = `${dateStr}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+    const isoStr = `${dateStr}T${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:00`;
 
     // Add any remaining input in guest field if valid
     let finalGuests = [...guestEmails];
@@ -242,25 +308,38 @@ export default function BookingPage() {
     let endTimeFormatted = "";
     if (selectedTime) {
       // Parse selectedTime (e.g., "10:30 AM")
-      const [time, modifier] = selectedTime.split(' ');
-      let [hours, minutes] = time.split(':').map(Number);
-      if (modifier === 'PM' && hours < 12) hours += 12;
-      if (modifier === 'AM' && hours === 12) hours = 0;
+      const [time, modifier] = selectedTime.split(" ");
+      let [hours, minutes] = time.split(":").map(Number);
+      if (modifier === "PM" && hours < 12) hours += 12;
+      if (modifier === "AM" && hours === 12) hours = 0;
 
-      // Create a temporary date object for calculation, assuming it's in the selected timezone
-      const tempDate = new Date(selectedDate || new Date()); // Fallback to current date if selectedDate is null
-      tempDate.setHours(hours, minutes);
+      // Construct a date object representing the start time in the selected timezone
+      // We can't simply use new Date() and setHours because that uses browser local time
+      // Strategy: Create a full ISO string with offset for the selected timezone?
+      // Simpler: Just rely on UTC date construction + duration, then format back.
+      // But we don't know the exact date offset for the selected timezone easily here without a library like date-fns-tz
+      // However, we already have `selectedDate` which is a Date object (likely local midnight or similar)
 
-      // Calculate end time
-      const endDate = new Date(tempDate.getTime() + event.duration * 60000);
+      // Let's use the helper assuming selectedDate is correct day.
+      // We need to add duration to the *logical* time `hours:minutes`.
+      let endHours = hours;
+      let endMinutes = minutes + event.duration;
 
-      // Format end time in the selected timezone
-      endTimeFormatted = new Intl.DateTimeFormat('en-US', {
-        timeZone: selectedTimezone,
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      }).format(endDate);
+      while (endMinutes >= 60) {
+        endMinutes -= 60;
+        endHours += 1;
+      }
+      if (endHours >= 24) {
+        endHours -= 24; // If it wraps to next day
+        // Ideally we'd note "+1 day" but simpler display is fine usually
+      }
+
+      // Format end time manually to match input style or use Intl if possible
+      // Let's format manually to ensure consistency with logical math above
+      const ampm = endHours >= 12 ? "PM" : "AM";
+      const displayH = endHours % 12 || 12;
+      const displayM = endMinutes.toString().padStart(2, '0');
+      endTimeFormatted = `${displayH}:${displayM} ${ampm} ${selectedTimezoneLabel}`;
     }
 
     return (
@@ -277,7 +356,8 @@ export default function BookingPage() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Confirmed</h2>
           <p className="text-gray-600 mb-6">
-            You are scheduled with {event.host || "Heritage Lane & Co Furniture"}.
+            You are scheduled with{" "}
+            {event.host || "Heritage Lane & Co Furniture"}.
           </p>
 
           <div className="bg-gray-50 rounded-lg p-4 text-left mb-8 border border-gray-100">
@@ -302,7 +382,9 @@ export default function BookingPage() {
           </div>
           <div className="space-y-3">
             {(() => {
-              const selectedProduct = event.repeaterFields?.find((l: any) => l.name === formData.selectedLink);
+              const selectedProduct = event.repeaterFields?.find(
+                (l: any) => l.name === formData.selectedLink
+              );
               const productUrl = selectedProduct?.url;
 
               return productUrl ? (
@@ -447,8 +529,16 @@ export default function BookingPage() {
                     const isCurrentMonth = isSameMonth(day, currentMonth);
 
                     // Check if date is available based on event availability settings
-                    const dateAvailable = isDateAvailable(day, event.availabilities as any);
-                    const isUnavailable = !isPast && !dateAvailable;
+                    const dateAvailable = isDateAvailable(
+                      day,
+                      event.availabilities as any
+                    );
+
+                    // Check if date is fully booked (from backend)
+                    const dateStr = format(day, "yyyy-MM-dd");
+                    const isFullyBooked = monthAvailability?.fullDates?.includes(dateStr);
+
+                    const isUnavailable = !isPast && (!dateAvailable || isFullyBooked);
 
                     return (
                       <button
@@ -508,9 +598,9 @@ export default function BookingPage() {
                                     : setSelectedTime(time)
                                 }
                                 className={clsx(
-                                  "py-4 px-6 font-bold text-sm text-center transition-colors",
+                                  "py-4 px-2 font-bold text-sm text-center transition-colors a",
                                   isSelected
-                                    ? "bg-gray-700 text-white"
+                                    ? "bg-gray-700 text-white  "
                                     : "text-blue-600 hover:bg-blue-50"
                                 )}
                                 animate={{
@@ -522,7 +612,30 @@ export default function BookingPage() {
                                 }}
                                 whileTap={{ scale: 0.98 }}
                               >
-                                {time}
+                                <p>
+                                  {time}
+                                </p>
+
+
+                                <p>
+                                  {event.groupMeeting?.enabled &&
+                                    event.groupMeeting?.showRemainingSpots &&
+                                    slotAvailability?.slots && (
+                                      <span className="ml-2 text-[10px] bg-blue-100 text-red-700 px-1.5 py-0.5 rounded-full font-medium">
+                                        {(() => {
+                                          const time24 = convertTo24Hour(time);
+                                          const slot =
+                                            slotAvailability.slots.find(
+                                              (s: any) => s.time === time24
+                                            );
+                                          const remaining = slot
+                                            ? slot.available
+                                            : event.groupMeeting.maxGuests;
+                                          return `${remaining} left`;
+                                        })()}
+                                      </span>
+                                    )}
+                                </p>
                               </motion.button>
 
                               {/* Sliding Action Buttons - Appear only when selected */}
@@ -610,10 +723,14 @@ export default function BookingPage() {
                         <button
                           type="button"
                           onClick={async () => {
-                            if (!formData.email) return alert("Please enter email first");
+                            if (!formData.email)
+                              return alert("Please enter email first");
                             setIsVerifying(true);
                             try {
-                              await sendOtp({ email: formData.email, eventId: event.id }).unwrap();
+                              await sendOtp({
+                                email: formData.email,
+                                eventId: event.id,
+                              }).unwrap();
                               setOtpSent(true);
                               setOtpError("");
                             } catch (err: any) {
@@ -641,11 +758,16 @@ export default function BookingPage() {
                               setIsVerifying(true);
                               setOtpError("");
                               try {
-                                await verifyOtp({ email: formData.email, otp: otpInput }).unwrap();
+                                await verifyOtp({
+                                  email: formData.email,
+                                  otp: otpInput,
+                                }).unwrap();
                                 setIsEmailVerified(true);
                                 setOtpSent(false);
                               } catch (err: any) {
-                                setOtpError(err.data?.message || "Invalid code");
+                                setOtpError(
+                                  err.data?.message || "Invalid code"
+                                );
                               } finally {
                                 setIsVerifying(false);
                               }
@@ -663,7 +785,11 @@ export default function BookingPage() {
                           </button>
                         </div>
                       )}
-                      {otpError && <p className="text-[10px] text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {otpError}</p>}
+                      {otpError && (
+                        <p className="text-[10px] text-red-500 mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> {otpError}
+                        </p>
+                      )}
                     </div>
                   )}
                   {isEmailVerified && (
@@ -734,7 +860,9 @@ export default function BookingPage() {
                       htmlFor="mobile"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      {event.enablePhoneCheck || event.phoneVerify ? "Mobile No *" : "Mobile No"}
+                      {event.enablePhoneCheck || event.phoneVerify
+                        ? "Mobile No *"
+                        : "Mobile No"}
                     </label>
                     <input
                       id="mobile"
@@ -770,48 +898,57 @@ export default function BookingPage() {
                     />
                   </div>
                 )}
-                {event.showAdditionalLinks !== false && event.repeaterFields && event.repeaterFields.length > 0 && (
-                  <div>
-                    <label
-                      htmlFor="selectedLink"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Product you are Interested in *
-                    </label>
-                    <select
-                      id="selectedLink"
-                      required
-                      className="w-full text-gray-900 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow bg-white"
-                      value={formData.selectedLink}
-                      onChange={(e) => setFormData({ ...formData, selectedLink: e.target.value })}
-                    >
-                      <option value="">Select an option</option>
-                      {event.repeaterFields.map((link: any, idx: number) => (
-                        <option key={idx} value={link.name}>
-                          {link.name}
-                        </option>
-                      ))}
-                    </select>
-                    {formData.selectedLink && (
-                      <div className="mt-2">
-                        {(() => {
-                          const selected = event.repeaterFields.find((l: any) => l.name === formData.selectedLink);
-                          return selected?.url ? (
-                            <a
-                              href={selected.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              View {selected.name} resource
-                            </a>
-                          ) : null;
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                )}
+                {event.showAdditionalLinks !== false &&
+                  event.repeaterFields &&
+                  event.repeaterFields.length > 0 && (
+                    <div>
+                      <label
+                        htmlFor="selectedLink"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Product you are Interested in *
+                      </label>
+                      <select
+                        id="selectedLink"
+                        required
+                        className="w-full text-gray-900 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow bg-white"
+                        value={formData.selectedLink}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            selectedLink: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="">Select an option</option>
+                        {event.repeaterFields.map((link: any, idx: number) => (
+                          <option key={idx} value={link.name}>
+                            {link.name}
+                          </option>
+                        ))}
+                      </select>
+                      {formData.selectedLink && (
+                        <div className="mt-2">
+                          {(() => {
+                            const selected = event.repeaterFields.find(
+                              (l: any) => l.name === formData.selectedLink
+                            );
+                            return selected?.url ? (
+                              <a
+                                href={selected.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                View {selected.name} resource
+                              </a>
+                            ) : null;
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                 <div className="flex items-start gap-3 mt-4">
                   <div className="flex items-center h-5">
@@ -829,7 +966,11 @@ export default function BookingPage() {
                     <label htmlFor="terms" className="cursor-pointer">
                       By proceeding, you confirm that you have read and agree to
                       our{" "}
-                      <a target="_blank" href="https://www.heritagelanefurniture.com.au/pages/terms-and-conditions" className="text-blue-600 hover:underline">
+                      <a
+                        target="_blank"
+                        href="https://www.heritagelanefurniture.com.au/pages/terms-and-conditions"
+                        className="text-blue-600 hover:underline"
+                      >
                         Terms of Use and Privacy Notice.
                       </a>
                     </label>
@@ -838,7 +979,9 @@ export default function BookingPage() {
 
                 <button
                   type="submit"
-                  disabled={!agreedToTerms || (event.emailVerify && !isEmailVerified)}
+                  disabled={
+                    !agreedToTerms || (event.emailVerify && !isEmailVerified)
+                  }
                   className={clsx(
                     "w-full font-bold py-3 px-4 rounded-full mt-4 transition-all active:scale-[0.98]",
                     agreedToTerms && (!event.emailVerify || isEmailVerified)
@@ -846,7 +989,9 @@ export default function BookingPage() {
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   )}
                 >
-                  {event.emailVerify && !isEmailVerified ? "Verify Email to Continue" : "Schedule Event"}
+                  {event.emailVerify && !isEmailVerified
+                    ? "Verify Email to Continue"
+                    : "Schedule Event"}
                 </button>
               </form>
             </div>
@@ -854,14 +999,22 @@ export default function BookingPage() {
           {step !== "form" && (
             <div className="relative">
               <button
-                onClick={() => setIsTimezoneSelectorOpen(!isTimezoneSelectorOpen)}
+                onClick={() =>
+                  setIsTimezoneSelectorOpen(!isTimezoneSelectorOpen)
+                }
                 className="flex items-center gap-3 text-gray-900 justify-start hover:bg-gray-50 p-2 rounded-lg transition-colors"
               >
                 <Globe className="w-5 h-5 text-gray-400" />
                 <span className="text-xs font-semibold">
-                  {selectedTimezoneLabel} ({formatTimeInTimezone(new Date(), selectedTimezone)})
+                  {selectedTimezoneLabel} (
+                  {formatTimeInTimezone(new Date(), selectedTimezone)})
                 </span>
-                <ChevronRight className={clsx("w-4 h-4 text-gray-400 transition-transform", isTimezoneSelectorOpen && "rotate-90")} />
+                <ChevronRight
+                  className={clsx(
+                    "w-4 h-4 text-gray-400 transition-transform",
+                    isTimezoneSelectorOpen && "rotate-90"
+                  )}
+                />
               </button>
 
               <AnimatePresence>
@@ -887,12 +1040,19 @@ export default function BookingPage() {
                     </div>
                     <div className="max-h-64 overflow-y-auto custom-scrollbar p-2">
                       {getTimezones()
-                        .filter(tz => tz.label.toLowerCase().includes(searchTz.toLowerCase()) || tz.value.toLowerCase().includes(searchTz.toLowerCase()))
-                        .map(tz => (
+                        .filter(
+                          (tz) =>
+                            tz.label
+                              .toLowerCase()
+                              .includes(searchTz.toLowerCase()) ||
+                            tz.value
+                              .toLowerCase()
+                              .includes(searchTz.toLowerCase())
+                        )
+                        .map((tz) => (
                           <button
                             key={tz.value}
                             onClick={() => {
-
                               setSelectedTimezone(tz.value);
                               setIsTimezoneSelectorOpen(false);
                               setSelectedTimezoneLabel(tz.label);
@@ -906,9 +1066,13 @@ export default function BookingPage() {
                           >
                             <span className="flex items-center justify-between">
                               <span>{tz.label}</span>
-                              <span className="text-[10px] opacity-70 font-normal">{tz.offset}</span>
+                              <span className="text-[10px] opacity-70 font-normal">
+                                {tz.offset}
+                              </span>
                             </span>
-                            <span className="text-[11px] opacity-60 font-medium">{tz.currentTime}</span>
+                            <span className="text-[11px] opacity-60 font-medium">
+                              {tz.currentTime}
+                            </span>
                           </button>
                         ))}
                     </div>

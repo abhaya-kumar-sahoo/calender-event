@@ -59,6 +59,24 @@ export const apiSlice = createApi({
     getPublicEvent: builder.query<EventType, string>({
       query: (id) => `/api/public/events/${id}`,
     }),
+    getSlotAvailability: builder.query<
+      any,
+      { id: string; date: string; timezone: string }
+    >({
+      query: ({ id, date, timezone }) => ({
+        url: `/api/events/${id}/slot-availability`,
+        params: { date, timezone },
+      }),
+    }),
+    getMonthAvailability: builder.query<
+      any,
+      { id: string; year: number; month: number; timezone: string }
+    >({
+      query: ({ id, year, month, timezone }) => ({
+        url: `/api/events/${id}/month-availability`,
+        params: { year, month, timezone },
+      }),
+    }),
     addEvent: builder.mutation<EventType, Partial<EventType>>({
       query: (body) => ({
         url: "/api/events",
@@ -147,6 +165,8 @@ export const {
   useUpdateProfileMutation,
   useGetEventsQuery,
   useGetPublicEventQuery,
+  useGetSlotAvailabilityQuery,
+  useGetMonthAvailabilityQuery,
   useAddEventMutation,
   useUpdateEventMutation,
   useDeleteEventMutation,

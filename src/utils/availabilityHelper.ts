@@ -96,7 +96,8 @@ export function isDateAvailable(
 export function getAvailableTimeSlots(
   date: Date,
   availability: Availability | undefined,
-  guestTimezone: string = "Asia/Kolkata"
+  guestTimezone: string = "Asia/Kolkata",
+  interval: number = 30 // Default to 30 minutes
 ): string[] {
   if (
     !availability ||
@@ -104,7 +105,7 @@ export function getAvailableTimeSlots(
     availability.weeklyHours.length === 0
   ) {
     // Fallback to default 10am-7pm slots
-    return generateDefaultSlots(date, guestTimezone);
+    return generateDefaultSlots(date, guestTimezone, interval);
   }
 
   const dateStr = date.toISOString().split("T")[0]; // YYYY-MM-DD
@@ -187,10 +188,10 @@ export function getAvailableTimeSlots(
         slots.push(guestTimeStr);
       }
 
-      // Increment by 30 minutes
-      currentMin += 30;
-      if (currentMin >= 60) {
-        currentMin = 0;
+      // Increment by interval
+      currentMin += interval;
+      while (currentMin >= 60) {
+        currentMin -= 60;
         currentHour += 1;
       }
     }
@@ -202,12 +203,17 @@ export function getAvailableTimeSlots(
 /**
  * Generate default time slots (10am-7pm) for backward compatibility
  */
-function generateDefaultSlots(date: Date, guestTimezone: string): string[] {
+function generateDefaultSlots(
+  date: Date,
+  guestTimezone: string,
+  interval: number = 30
+): string[] {
   const slots: string[] = [];
   const dateStr = date.toISOString().split("T")[0];
 
   for (let h = 10; h < 19; h++) {
-    [0, 30].forEach((m) => {
+    let m = 0;
+    while (m < 60) {
       const timeStr = `${h.toString().padStart(2, "0")}:${m
         .toString()
         .padStart(2, "0")}:00`;
@@ -224,7 +230,9 @@ function generateDefaultSlots(date: Date, guestTimezone: string): string[] {
       if (!slots.includes(guestTimeStr)) {
         slots.push(guestTimeStr);
       }
-    });
+
+      m += interval;
+    }
   }
 
   return slots;
