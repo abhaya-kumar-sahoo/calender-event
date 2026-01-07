@@ -21,6 +21,7 @@ import {
   isSameDay,
   isBefore,
 } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
 import {
   ChevronLeft,
   ChevronRight,
@@ -65,8 +66,6 @@ export default function BookingPage() {
 
   const [sendOtp] = useSendOtpMutation();
   const [verifyOtp] = useVerifyOtpMutation();
-
-  console.log({ event });
 
   const [step, setStep] = useState<BookingStep>("date-time");
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1));
@@ -125,17 +124,21 @@ export default function BookingPage() {
   const [currentGuestInput, setCurrentGuestInput] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   // Calendar Logic
-  const { data: slotAvailability, isFetching: isCheckingAvailability, refetch, isLoading: isCheckingAvailabilityLoading } =
-    useGetSlotAvailabilityQuery(
-      {
-        id: id || "",
-        date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
-        timezone: selectedTimezone,
-      },
-      {
-        skip: !id || !selectedDate || !event?.groupMeeting?.enabled,
-      }
-    );
+  const {
+    data: slotAvailability,
+    isFetching: isCheckingAvailability,
+    refetch,
+    isLoading: isCheckingAvailabilityLoading,
+  } = useGetSlotAvailabilityQuery(
+    {
+      id: id || "",
+      date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
+      timezone: selectedTimezone,
+    },
+    {
+      skip: !id || !selectedDate || !event?.groupMeeting?.enabled,
+    }
+  );
   // console.log(slotAvailability);
 
   // Poll for monthly availability
@@ -151,7 +154,6 @@ export default function BookingPage() {
       pollingInterval: 30000, // Poll every 30s to keep updated
     }
   );
-
 
   if (isLoading) {
     return (
@@ -286,6 +288,8 @@ export default function BookingPage() {
     ) {
       finalGuests.push(currentGuestInput);
     }
+    // console.log(fromZonedTime(isoStr, selectedTimezone).toISOString());
+    // console.log({ selectedTimezone });
 
     addBooking({
       eventId: event.id,
@@ -293,7 +297,7 @@ export default function BookingPage() {
       guestEmail: formData.email,
       guestMobile: formData.mobile,
       additionalGuests: finalGuests,
-      startTime: new Date(isoStr).toISOString(),
+      startTime: fromZonedTime(isoStr, selectedTimezone).toISOString(),
       notes: formData.notes,
       timezone: selectedTimezone,
       selectedLink: formData.selectedLink,
@@ -338,7 +342,7 @@ export default function BookingPage() {
       // Let's format manually to ensure consistency with logical math above
       const ampm = endHours >= 12 ? "PM" : "AM";
       const displayH = endHours % 12 || 12;
-      const displayM = endMinutes.toString().padStart(2, '0');
+      const displayM = endMinutes.toString().padStart(2, "0");
       endTimeFormatted = `${displayH}:${displayM} ${ampm} ${selectedTimezoneLabel}`;
     }
 
@@ -536,9 +540,11 @@ export default function BookingPage() {
 
                     // Check if date is fully booked (from backend)
                     const dateStr = format(day, "yyyy-MM-dd");
-                    const isFullyBooked = monthAvailability?.fullDates?.includes(dateStr);
+                    const isFullyBooked =
+                      monthAvailability?.fullDates?.includes(dateStr);
 
-                    const isUnavailable = !isPast && (!dateAvailable || isFullyBooked);
+                    const isUnavailable =
+                      !isPast && (!dateAvailable || isFullyBooked);
 
                     return (
                       <button
@@ -612,10 +618,7 @@ export default function BookingPage() {
                                 }}
                                 whileTap={{ scale: 0.98 }}
                               >
-                                <p>
-                                  {time}
-                                </p>
-
+                                <p>{time}</p>
 
                                 <p>
                                   {event.groupMeeting?.enabled &&
@@ -998,6 +1001,9 @@ export default function BookingPage() {
           )}
           {step !== "form" && (
             <div className="relative">
+              <h3 className="text-violet-900 text-sm font-semibold">
+                Timezone
+              </h3>
               <button
                 onClick={() =>
                   setIsTimezoneSelectorOpen(!isTimezoneSelectorOpen)
@@ -1038,6 +1044,7 @@ export default function BookingPage() {
                         />
                       </div>
                     </div>
+
                     <div className="max-h-64 overflow-y-auto custom-scrollbar p-2">
                       {getTimezones()
                         .filter(

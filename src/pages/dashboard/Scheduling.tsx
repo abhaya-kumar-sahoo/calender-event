@@ -188,6 +188,8 @@ export default function Scheduling() {
   const openEditModal = (event: any) => {
     setEditingEventId(event.id);
     setActiveTab("event-type");
+    console.log(event.availabilities);
+
     setFormData({
       title: event.title,
       duration: event.duration,

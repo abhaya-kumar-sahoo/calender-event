@@ -13,6 +13,7 @@ const {
 const { upload } = require("../utils/s3");
 
 const { otpStore, OTP_EXPIRY } = require("../utils/otpStore");
+const { formatInTimeZone } = require("date-fns-tz");
 
 const isAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) return next();
@@ -23,7 +24,6 @@ const isAuthenticated = (req, res, next) => {
 router.get("/events", isAuthenticated, async (req, res) => {
     try {
         const events = await EventType.find({ userId: req.user._id });
-        console.log({ events });
 
         res.json(events);
     } catch (err) {
@@ -585,11 +585,25 @@ router.post("/bookings", async (req, res) => {
         const emailSubject = `Confirmation: ${eventTitle} with ${host.name}`;
         const allGuests = [guestEmail, ...(additionalGuests || [])];
 
-        const formattedDate = new Date(startTime).toLocaleString("en-US", {
-            timeZone: timezone || "Asia/Kolkata",
-            dateStyle: "full",
-            timeStyle: "short",
-        });
+        // Google Calendar style format: Thursday 8 Jan 2026 ⋅ 9:30am – 9:45am (India Standard Time - Kolkata)
+        const startDate = new Date(startTime);
+        const endDate = new Date(startDate.getTime() + (eventDuration || 60) * 60000);
+        const tz = timezone || "Asia/Kolkata";
+        console.log({ timezone, tz, startDate });
+
+        // "Thursday 8 Jan 2026"
+        const datePart = formatInTimeZone(startDate, tz, "eeee d MMM yyyy");
+        // "9:30am"
+        const startTimePart = formatInTimeZone(startDate, tz, "h:mma").toLowerCase();
+        // "9:45am"
+        const endTimePart = formatInTimeZone(endDate, tz, "h:mma").toLowerCase();
+        // "India Standard Time"
+        const tzName = formatInTimeZone(startDate, tz, "zzzz");
+        // "Kolkata" from "Asia/Kolkata"
+        const cityIndex = tz.indexOf("/");
+        const city = cityIndex !== -1 ? tz.substring(cityIndex + 1).replace(/_/g, " ") : tz;
+
+        const formattedDate = `${datePart} ⋅ ${startTimePart} – ${endTimePart} (${tzName} - ${city})`;
 
         // Format for Guest Email
         const guestEmailHtml = getGuestEmailHtml({

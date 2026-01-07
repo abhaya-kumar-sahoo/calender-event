@@ -120,8 +120,8 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                         type="button"
                         onClick={() => setActiveTab("event-type")}
                         className={`flex-1 py-3 text-sm font-bold transition-all border-b-2 ${activeTab === "event-type"
-                                ? "border-blue-600 text-blue-600 bg-blue-50/50"
-                                : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                            ? "border-blue-600 text-blue-600 bg-blue-50/50"
+                            : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                             }`}
                     >
                         Event Type
@@ -130,8 +130,8 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                         type="button"
                         onClick={() => setActiveTab("quick-booking")}
                         className={`flex-1 py-3 text-sm font-bold transition-all border-b-2 ${activeTab === "quick-booking"
-                                ? "border-blue-600 text-blue-600 bg-blue-50/50"
-                                : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                            ? "border-blue-600 text-blue-600 bg-blue-50/50"
+                            : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                             }`}
                     >
                         Quick Booking
@@ -597,7 +597,7 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                                         }
                                     />
                                 </div>
-                                <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-200 space-y-4">
+                                {/* <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-200 space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
@@ -676,7 +676,7 @@ const SchedulingModal: React.FC<SchedulingModalProps> = ({
                                             </label>
                                         </div>
                                     )}
-                                </div>
+                                </div> */}
 
                                 <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-200 space-y-4">
                                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
