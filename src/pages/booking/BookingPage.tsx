@@ -126,9 +126,6 @@ export default function BookingPage() {
   // Calendar Logic
   const {
     data: slotAvailability,
-    isFetching: isCheckingAvailability,
-    refetch,
-    isLoading: isCheckingAvailabilityLoading,
   } = useGetSlotAvailabilityQuery(
     {
       id: id || "",

@@ -12,7 +12,6 @@ import {
     Plus,
     Trash2,
     Mail,
-    Users,
 } from "lucide-react";
 
 interface SchedulingModalProps {
