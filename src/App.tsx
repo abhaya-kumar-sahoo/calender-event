@@ -16,6 +16,8 @@ import Home from './pages/Home';
 import Profile from './pages/dashboard/Profile';
 import LoadingScreen from './components/LoadingScreen';
 
+console.log(import.meta.env.MODE);
+
 // Protected Route Guard
 function RequireAuth({ children }: { children: JSX.Element }) {
   const { data: user, isLoading } = useCheckAuthQuery();
