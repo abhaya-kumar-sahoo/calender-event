@@ -23,7 +23,12 @@ fi
 # --manual-cleanup-hook: Script to clean up TXT record
 # -m: Email for renewal (replace with actual admin email)
 
-certbot certonly \
+# Certbot command
+# Prepend sudo because we need to write to /etc/letsencrypt
+# This assumes the user running this script (e.g. via PM2) has passwordless sudo access (Standard on AWS EC2 ubuntu)
+# If not, the backend must be run as root.
+
+sudo certbot certonly \
     --non-interactive \
     --agree-tos \
     --manual \
