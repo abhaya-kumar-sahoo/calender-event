@@ -31,8 +31,7 @@ certbot certonly \
     --manual-auth-hook "$AUTH_HOOK" \
     --manual-cleanup-hook "$CLEANUP_HOOK" \
     -d "$DOMAIN" \
-    -m admin@equartistech.com \
-    --manual-public-ip-logging-ok
+    -m info@equartistech.com
 
 # Check exit code
 if [ $? -eq 0 ]; then
