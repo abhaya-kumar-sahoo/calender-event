@@ -11,6 +11,7 @@ require("./config/passport");
 
 const authRoutes = require("./routes/auth");
 const apiRoutes = require("./routes/api");
+const domainRoutes = require("./routes/domains");
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use(passport.session());
 
 app.use("/auth", authRoutes);
 app.use("/api", apiRoutes);
+app.use("/api/domains", domainRoutes);
 app.get("/", (req, res) => {
     res.send("calender server running!");
 });

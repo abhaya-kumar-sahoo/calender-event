@@ -15,6 +15,7 @@ import TermsOfService from './pages/TermsOfService';
 import Home from './pages/Home';
 import Profile from './pages/dashboard/Profile';
 import LoadingScreen from './components/LoadingScreen';
+import CustomDomain from './pages/CustomDomain';
 
 console.log(import.meta.env.MODE);
 
@@ -76,6 +77,7 @@ function AppContent() {
         <Route path='meetings' element={<Meetings />} />
         <Route path='contacts' element={<Contacts />} />
         <Route path='profile' element={<Profile />} />
+        <Route path='custom-domain' element={<CustomDomain />} />
       </Route>
 
       {/* Public Booking Page */}
