@@ -42,25 +42,30 @@ server {
 const configureDomain = async (domain) => {
     // 1. Write config file
     const configContent = getTemplate(domain);
-    const configPath = path.join(SITES_AVAILABLE, domain);
+    const availablePath = path.join(SITES_AVAILABLE, domain);
 
-    // Note: process needs write permission to /etc/nginx/sites-available
-    await fs.writeFile(configPath, configContent);
-    console.log(`[NGINX] Config written to ${configPath}`);
+    console.log(`[NGINX] Writing config for ${domain}...`);
+
+    // Use sudo tee to write file as root (since node process might not be root)
+    // echo 'content' | sudo tee /path/to/file
+    const writeCmd = `echo '${configContent.replace(/'/g, "'\\''")}' | sudo tee ${availablePath}`;
+
+    await execCommand(writeCmd);
+    console.log(`[NGINX] Config written to ${availablePath}`);
 
     // 2. Symlink
     const linkPath = path.join(SITES_ENABLED, domain);
     try {
-        await fs.symlink(configPath, linkPath);
+        await execCommand(`sudo ln -sf ${availablePath} ${linkPath}`);
     } catch (err) {
-        if (err.code !== 'EEXIST') throw err; // Ignore if already exists
+        console.error(`[NGINX] Symlink warning:`, err.message);
     }
 
     // 3. Test Config
-    await execCommand('nginx -t');
+    await execCommand('sudo nginx -t');
 
     // 4. Reload NGINX
-    await execCommand('systemctl reload nginx'); // Needs sudo/permissions
+    await execCommand('sudo systemctl reload nginx');
     console.log(`[NGINX] Reloaded successfully for ${domain}`);
 };
 

@@ -28,6 +28,11 @@ fi
 # This assumes the user running this script (e.g. via PM2) has passwordless sudo access (Standard on AWS EC2 ubuntu)
 # If not, the backend must be run as root.
 
+sudo # Certbot command
+# Prepend sudo because we need to write to /etc/letsencrypt
+# This assumes the user running this script (e.g. via PM2) has passwordless sudo access (Standard on AWS EC2 ubuntu)
+# If not, the backend must be run as root.
+
 sudo certbot certonly \
     --non-interactive \
     --agree-tos \
