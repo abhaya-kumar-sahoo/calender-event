@@ -35,7 +35,7 @@ const CustomDomain = () => {
 
     const handleFetch = async () => {
         try {
-            const res = await fetch(`${baseUrl}/domains/list`, {
+            const res = await fetch(`${baseUrl}/api/domains/list`, {
                 credentials: 'include'
             });
             if (res.ok) {
@@ -58,7 +58,7 @@ const CustomDomain = () => {
         setLoading(true);
         setError('');
         try {
-            const res = await fetch(`${baseUrl}/domains`, {
+            const res = await fetch(`${baseUrl}/api/domains`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ domain: newDomain }),
@@ -78,7 +78,7 @@ const CustomDomain = () => {
     const handleVerify = async (id: string) => {
         setVerifyingId(id);
         try {
-            const res = await fetch(`${baseUrl}/domains/${id}/verify`, {
+            const res = await fetch(`${baseUrl}/api/domains/${id}/verify`, {
                 method: 'POST',
                 headers: getHeaders(),
                 credentials: 'include'
