@@ -8,6 +8,7 @@ import {
     RefreshCw,
     Plus
 } from 'lucide-react';
+import { baseUrl } from '../utils';
 
 interface Domain {
     _id: string;
@@ -26,7 +27,6 @@ const CustomDomain = () => {
     const [error, setError] = useState('');
     const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
     const getHeaders = () => ({
         'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ const CustomDomain = () => {
 
     const handleFetch = async () => {
         try {
-            const res = await fetch(`${API_BASE}/domains/list`, {
+            const res = await fetch(`${baseUrl}/domains/list`, {
                 credentials: 'include'
             });
             if (res.ok) {
@@ -58,7 +58,7 @@ const CustomDomain = () => {
         setLoading(true);
         setError('');
         try {
-            const res = await fetch(`${API_BASE}/domains`, {
+            const res = await fetch(`${baseUrl}/domains`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ domain: newDomain }),
@@ -78,7 +78,7 @@ const CustomDomain = () => {
     const handleVerify = async (id: string) => {
         setVerifyingId(id);
         try {
-            const res = await fetch(`${API_BASE}/domains/${id}/verify`, {
+            const res = await fetch(`${baseUrl}/domains/${id}/verify`, {
                 method: 'POST',
                 headers: getHeaders(),
                 credentials: 'include'
