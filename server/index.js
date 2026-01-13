@@ -20,7 +20,7 @@ mongoose
     .connect(process.env.MONGODB_URI)
     .then(() => console.log("MongoDB connected"))
     .catch((err) => console.error("MongoDB connection error:", err));
-
+console.log("CLIENT_URL:", process.env.CLIENT_URL);
 app.use(
     cors({
         origin: process.env.CLIENT_URL,
