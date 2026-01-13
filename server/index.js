@@ -21,9 +21,23 @@ mongoose
     .then(() => console.log("MongoDB connected"))
     .catch((err) => console.error("MongoDB connection error:", err));
 console.log("CLIENT_URL:", process.env.CLIENT_URL);
+const clientUrl = (process.env.CLIENT_URL || "").replace(/\/$/, "");
 app.use(
     cors({
-        origin: process.env.CLIENT_URL,
+        origin: (origin, callback) => {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
+
+            const normalizedOrigin = origin.replace(/\/$/, "");
+            if (normalizedOrigin === clientUrl) {
+                return callback(null, true);
+            }
+
+            console.log(
+                `[CORS Blocked] Request Origin: ${origin} (Normalized: ${normalizedOrigin}) does not match Expected: ${clientUrl}`
+            );
+            return callback(new Error("Not allowed by CORS"));
+        },
         credentials: true,
     })
 );
@@ -34,16 +48,16 @@ app.set("trust proxy", 1);
 
 // Request Logger Middleware
 app.use((req, res, next) => {
-    // console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
 });
 
 // Debugging Middleware for Cookies
 app.use((req, res, next) => {
-    // console.log(
-    //     `[Debug] ${req.method} ${req.url} - Origin: ${req.headers.origin}`
-    // );
-    // console.log(`[Debug] Incoming Cookies:`, req.headers.cookie);
+    console.log(
+        `[Debug] ${req.method} ${req.url} - Origin: ${req.headers.origin}`
+    );
+    console.log(`[Debug] Incoming Cookies:`, req.headers.cookie);
     next();
 });
 
