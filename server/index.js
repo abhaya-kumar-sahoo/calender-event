@@ -28,21 +28,45 @@ app.use((req, res, next) => {
 
 // Debugging Middleware for Cookies
 app.use((req, res, next) => {
-    console.log(
-        `[Debug] ${req.method} ${req.url} - Origin: ${req.headers.origin}`
-    );
-    console.log(`[Debug] Incoming Cookies:`, req.headers.cookie);
+    console.log("===== INCOMING REQUEST =====");
+    console.log("Method:", req.method);
+    console.log("URL:", req.originalUrl);
+    console.log("Origin:", req.headers.origin);
+    console.log("Host:", req.headers.host);
+    console.log("X-Forwarded-Proto:", req.headers["x-forwarded-proto"]);
+    console.log("X-Forwarded-For:", req.headers["x-forwarded-for"]);
+    console.log("Cookies:", req.headers.cookie);
+    console.log("================================");
     next();
 });
 
+
 const corsOptions = {
-    origin: 'https://appointment.equartistech.com',
+    origin: function (origin, callback) {
+        console.log("[CORS] Incoming origin:", origin);
+
+        const allowedOrigin = "https://appointment.equartistech.com";
+
+        if (!origin) {
+            console.log("[CORS] No origin — allowing (server-to-server)");
+            return callback(null, true);
+        }
+
+        if (origin === allowedOrigin) {
+            console.log("[CORS] Origin allowed");
+            return callback(null, true);
+        }
+
+        console.error("[CORS] Origin BLOCKED:", origin);
+        return callback(new Error("CORS origin denied"));
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type"],
 };
 
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
