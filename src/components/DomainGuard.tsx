@@ -46,8 +46,8 @@ const DomainGuard = ({ children }: DomainGuardProps) => {
                 }
             } catch (error) {
                 console.error('Domain check failed:', error);
-                // On error, allow access (fail open for development)
-                setIsValidDomain(true);
+                // Fail-closed: Block access on API errors for security
+                setIsValidDomain(false);
             } finally {
                 setIsLoading(false);
             }

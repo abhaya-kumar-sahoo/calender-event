@@ -48,9 +48,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const isProduction =
-    process.env.NODE_ENV === "production" || process.env.RENDER !== undefined;
-console.log("Session Config - isProduction:", isProduction);
+
 
 app.use(
     session({
