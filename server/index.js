@@ -22,9 +22,12 @@ mongoose
     .catch((err) => console.error("MongoDB connection error:", err));
 app.use(
     cors({
-        // origin: process.env.CLIENT_URL,
-        origin: '*',              // allows literally everyone
-
+        origin: (origin, callback) => {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
+            // Dynamically allow all origins by reflecting the origin back
+            return callback(null, true);
+        },
         credentials: true,
     })
 );
