@@ -20,24 +20,11 @@ mongoose
     .connect(process.env.MONGODB_URI)
     .then(() => console.log("MongoDB connected"))
     .catch((err) => console.error("MongoDB connection error:", err));
-console.log("CLIENT_URL:", process.env.CLIENT_URL);
-const clientUrl = (process.env.CLIENT_URL || "").replace(/\/$/, "");
 app.use(
     cors({
-        origin: (origin, callback) => {
-            // Allow requests with no origin (like mobile apps or curl requests)
-            if (!origin) return callback(null, true);
+        // origin: process.env.CLIENT_URL,
+        origin: '*',              // allows literally everyone
 
-            const normalizedOrigin = origin.replace(/\/$/, "");
-            if (normalizedOrigin === clientUrl) {
-                return callback(null, true);
-            }
-
-            console.log(
-                `[CORS Blocked] Request Origin: ${origin} (Normalized: ${normalizedOrigin}) does not match Expected: ${clientUrl}`
-            );
-            return callback(new Error("Not allowed by CORS"));
-        },
         credentials: true,
     })
 );
