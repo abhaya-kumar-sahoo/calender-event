@@ -35,17 +35,8 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(
-    cors({
-        origin: (origin, callback) => {
-            // Allow requests with no origin (like mobile apps or curl requests)
-            if (!origin) return callback(null, true);
-            // Dynamically allow all origins by reflecting the origin back
-            return callback(null, origin);
-        },
-        credentials: true,
-    })
-);
+app.use(cors())
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
