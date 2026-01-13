@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { baseUrl } from '../utils';
+import NotFound from '../pages/NotFound';
 
 interface DomainGuardProps {
     children: React.ReactNode;
 }
 
 const DomainGuard = ({ children }: DomainGuardProps) => {
-    const navigate = useNavigate();
     const [isValidDomain, setIsValidDomain] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -17,10 +16,16 @@ const DomainGuard = ({ children }: DomainGuardProps) => {
                 // Get current hostname
                 const currentDomain = window.location.hostname;
 
-                // Skip check for localhost and development
+                // Default domains that always have access (no verification needed)
+                const defaultDomains = [
+                    'appointment.equartistech.com',
+                    'localhost',
+                    '127.0.0.1'
+                ];
+
+                // Skip check for default domains and development
                 if (
-                    currentDomain === 'localhost' ||
-                    currentDomain === '127.0.0.1' ||
+                    defaultDomains.includes(currentDomain) ||
                     currentDomain.includes('localhost:') ||
                     currentDomain.includes('127.0.0.1:')
                 ) {
@@ -51,13 +56,6 @@ const DomainGuard = ({ children }: DomainGuardProps) => {
         checkDomain();
     }, []);
 
-    useEffect(() => {
-        if (isValidDomain === false) {
-            // Redirect to 404 page
-            navigate('/404', { replace: true });
-        }
-    }, [isValidDomain, navigate]);
-
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -70,7 +68,7 @@ const DomainGuard = ({ children }: DomainGuardProps) => {
     }
 
     if (isValidDomain === false) {
-        return null; // Will redirect to 404
+        return <NotFound />;
     }
 
     return <>{children}</>;

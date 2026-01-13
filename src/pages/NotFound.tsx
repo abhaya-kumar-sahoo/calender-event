@@ -5,7 +5,7 @@ const NotFound = () => {
     const isCustomDomain = currentDomain !== 'localhost' && !currentDomain.includes('127.0.0.1');
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100">
             <div className="max-w-2xl mx-auto px-6 text-center">
                 <div className="bg-white rounded-2xl shadow-xl p-12">
                     <div className="flex justify-center mb-6">
