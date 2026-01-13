@@ -3,7 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const Domain = require('../models/Domain');
 const dns = require('dns').promises;
-const sslManager = require('../utils/sslManager');
+// const sslManager = require('../utils/sslManager'); // Caddy handles SSL now
 
 // Helper to validate domain format
 const isValidDomain = (domain) => {
@@ -112,16 +112,16 @@ router.post('/:id/verify', async (req, res) => {
         }
 
         // Success
-        console.log(`[Domain] Verification SUCCESS for ${domainDoc.domain}. Starting SSL provisioning...`);
+        console.log(`[Domain] Verification SUCCESS for ${domainDoc.domain}. Caddy will handle SSL.`);
         domainDoc.verified = true;
         domainDoc.verifiedAt = new Date();
-        domainDoc.sslStatus = 'pending'; // Trigger SSL Flow
+        domainDoc.sslStatus = 'issued'; // Caddy handles this automatically on-demand
         await domainDoc.save();
 
-        // Trigger background SSL provisioning
-        sslManager.provisionSSL(domainDoc._id);
+        // No need to trigger manual provisioning
+        // sslManager.provisionSSL(domainDoc._id);
 
-        res.json({ success: true, message: 'Domain verified successfully. SSL provisioning started.' });
+        res.json({ success: true, message: 'Domain verified successfully. SSL is automatically managed.' });
 
     } catch (error) {
         console.error('[Domain] Verify domain error:', error);

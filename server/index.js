@@ -12,6 +12,7 @@ require("./config/passport");
 const authRoutes = require("./routes/auth");
 const apiRoutes = require("./routes/api");
 const domainRoutes = require("./routes/domains");
+const caddyRoutes = require("./routes/caddy");
 
 const app = express();
 
@@ -33,16 +34,16 @@ app.set("trust proxy", 1);
 
 // Request Logger Middleware
 app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    // console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
 });
 
 // Debugging Middleware for Cookies
 app.use((req, res, next) => {
-    console.log(
-        `[Debug] ${req.method} ${req.url} - Origin: ${req.headers.origin}`
-    );
-    console.log(`[Debug] Incoming Cookies:`, req.headers.cookie);
+    // console.log(
+    //     `[Debug] ${req.method} ${req.url} - Origin: ${req.headers.origin}`
+    // );
+    // console.log(`[Debug] Incoming Cookies:`, req.headers.cookie);
     next();
 });
 
@@ -76,6 +77,7 @@ app.use(passport.session());
 app.use("/auth", authRoutes);
 app.use("/api", apiRoutes);
 app.use("/api/domains", domainRoutes);
+app.use("/", caddyRoutes); // Validation endpoint for Caddy's 'ask' directive
 app.get("/", (req, res) => {
     res.send("calender server running!");
 });

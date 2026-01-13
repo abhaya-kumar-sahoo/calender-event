@@ -87,7 +87,7 @@ const CustomDomain = () => {
             if (!res.ok) throw new Error(data.error || 'Verification failed');
             // Refresh
             handleFetch();
-            alert('Domain verified! SSL provisioning started.');
+            alert('Domain verified! SSL is active.');
         } catch (err: any) {
             alert(err.message);
         } finally {
@@ -153,7 +153,7 @@ const CustomDomain = () => {
                                     </span>
                                     {d.verified && (
                                         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${d.sslStatus === 'issued' ? 'bg-green-100 text-green-700' : d.sslStatus === 'failed' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                                            SSL: {d.sslStatus.toUpperCase()}
+                                            SSL: {d.sslStatus === 'issued' ? 'ACTIVE' : d.sslStatus.toUpperCase()}
                                         </span>
                                     )}
                                     {d.sslError && (
@@ -175,7 +175,7 @@ const CustomDomain = () => {
                                 <div className="mb-6 pb-6 border-b border-gray-200">
                                     <h5 className="text-sm font-bold text-gray-700 mb-2">Step 1: Point your domain</h5>
                                     <p className="text-sm text-gray-600 mb-3">
-                                        Log in to your DNS provider (e.g., GoDaddy, Namecheap) and add an <strong>A Record</strong> pointing to our server.
+                                        Log in to your DNS provider (e.g., GoDaddy, Namecheap) and add an <strong>A Record</strong> pointing to your Caddy server.
                                     </p>
                                     <div className="flex items-center gap-4 text-sm bg-white p-3 rounded border">
                                         <div className="flex-1">
@@ -193,7 +193,7 @@ const CustomDomain = () => {
                                         </div>
                                     </div>
                                     <p className="text-xs text-gray-500 mt-2">
-                                        *Replace with the Public IP of your appointment server.
+                                        *Replace with the Public IP of your Caddy server.
                                     </p>
                                 </div>
 
@@ -229,8 +229,11 @@ const CustomDomain = () => {
                                             className="bg-gray-900 text-white px-6 py-2 rounded-lg text-sm hover:bg-black disabled:opacity-50 flex items-center gap-2 font-medium"
                                         >
                                             {verifyingId === d._id && <Loader2 className="w-4 h-4 animate-spin" />}
-                                            I've added the records, Verify Now
+                                            I've added the records, Verify Domain
                                         </button>
+                                        <p className="text-xs text-gray-400 mt-2 block w-full text-right">
+                                            SSL will be automatically provisioned by Caddy on first visit.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
