@@ -20,22 +20,6 @@ mongoose
     .connect(process.env.MONGODB_URI)
     .then(() => console.log("MongoDB connected"))
     .catch((err) => console.error("MongoDB connection error:", err));
-// app.use(
-//     cors({
-//         origin: (origin, callback) => {
-//             // Allow requests with no origin (like mobile apps or curl requests)
-//             if (!origin) return callback(null, true);
-//             // Dynamically allow all origins by reflecting the origin back
-//             return callback(null, true);
-//         },
-//         credentials: true,
-//     })
-// );
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.set("trust proxy", 1);
-
 // Request Logger Middleware
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -50,6 +34,23 @@ app.use((req, res, next) => {
     console.log(`[Debug] Incoming Cookies:`, req.headers.cookie);
     next();
 });
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
+            // Dynamically allow all origins by reflecting the origin back
+            return callback(null, origin);
+        },
+        credentials: true,
+    })
+);
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.set("trust proxy", 1);
 
 const isProduction =
     process.env.NODE_ENV === "production" || process.env.RENDER !== undefined;
