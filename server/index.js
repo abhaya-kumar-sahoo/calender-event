@@ -36,13 +36,7 @@ app.use((req, res, next) => {
 });
 
 const corsOptions = {
-    origin: (origin, callback) => {
-        if (!origin) return callback(null, true); // server-to-server
-        if (origin === process.env.CLIENT_URL) {
-            return callback(null, true);
-        }
-        return callback(new Error("Not allowed by CORS"));
-    },
+    origin: 'https://appointment.equartistech.com',
     credentials: true,
 };
 
