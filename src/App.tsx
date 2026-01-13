@@ -16,6 +16,8 @@ import Home from './pages/Home';
 import Profile from './pages/dashboard/Profile';
 import LoadingScreen from './components/LoadingScreen';
 import CustomDomain from './pages/CustomDomain';
+import DomainGuard from './components/DomainGuard';
+import NotFound from './pages/NotFound';
 
 console.log(import.meta.env.MODE);
 
@@ -58,33 +60,39 @@ function AppContent() {
   }
 
   return (
-    <Routes>
-      <Route path='/' element={<PublicRoute><Home /></PublicRoute>} />
-      <Route path='/login' element={<PublicRoute><Login /></PublicRoute>} />
-      {/* <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} /> */}
-      <Route path='/forgot-password' element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+    <DomainGuard>
+      <Routes>
+        <Route path='/' element={<PublicRoute><Home /></PublicRoute>} />
+        <Route path='/login' element={<PublicRoute><Login /></PublicRoute>} />
+        {/* <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} /> */}
+        <Route path='/forgot-password' element={<PublicRoute><ForgotPassword /></PublicRoute>} />
 
-      {/* Host Dashboard Routes (Protected) */}
-      <Route
-        path='/dashboard'
-        element={
-          <RequireAuth>
-            <DashboardLayout />
-          </RequireAuth>
-        }
-      >
-        <Route index element={<Scheduling />} />
-        <Route path='meetings' element={<Meetings />} />
-        <Route path='contacts' element={<Contacts />} />
-        <Route path='profile' element={<Profile />} />
-        <Route path='custom-domain' element={<CustomDomain />} />
-      </Route>
+        {/* Host Dashboard Routes (Protected) */}
+        <Route
+          path='/dashboard'
+          element={
+            <RequireAuth>
+              <DashboardLayout />
+            </RequireAuth>
+          }
+        >
+          <Route index element={<Scheduling />} />
+          <Route path='meetings' element={<Meetings />} />
+          <Route path='contacts' element={<Contacts />} />
+          <Route path='profile' element={<Profile />} />
+          <Route path='custom-domain' element={<CustomDomain />} />
+        </Route>
 
-      {/* Public Booking Page */}
-      <Route path='/book/:id' element={<BookingPage />} />
-      <Route path='/privacy-policy' element={<PrivacyPolicy />} />
-      <Route path='/terms-of-service' element={<TermsOfService />} />
-    </Routes>
+        {/* Public Booking Page */}
+        <Route path='/book/:id' element={<BookingPage />} />
+        <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+        <Route path='/terms-of-service' element={<TermsOfService />} />
+
+        {/* 404 Page */}
+        <Route path='/404' element={<NotFound />} />
+        <Route path='*' element={<NotFound />} />
+      </Routes>
+    </DomainGuard>
   );
 }
 

@@ -3,12 +3,33 @@ const router = express.Router();
 const crypto = require('crypto');
 const Domain = require('../models/Domain');
 const dns = require('dns').promises;
+
+// Configure DNS servers to avoid caching issues in long-running processes
+require('dns').setServers([
+    '8.8.8.8',      // Google DNS
+    '8.8.4.4',      // Google DNS Secondary
+    '1.1.1.1'       // Cloudflare DNS
+]);
 // const sslManager = require('../utils/sslManager'); // Caddy handles SSL now
+
+// Configuration
+const MAX_DOMAINS_PER_USER = 10;
+const BLOCKED_DOMAINS = [
+    'google.com', 'facebook.com', 'twitter.com', 'instagram.com',
+    'youtube.com', 'amazon.com', 'apple.com', 'microsoft.com',
+    'github.com', 'stackoverflow.com', 'reddit.com', 'linkedin.com'
+];
 
 // Helper to validate domain format
 const isValidDomain = (domain) => {
     const re = /^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/;
     return re.test(domain);
+};
+
+// Helper to check if domain is blocked
+const isBlockedDomain = (domain) => {
+    const baseDomain = domain.split('.').slice(-2).join('.');
+    return BLOCKED_DOMAINS.includes(baseDomain) || BLOCKED_DOMAINS.includes(domain);
 };
 
 // POST /api/domains - Add a new domain
@@ -22,6 +43,21 @@ router.post('/', async (req, res) => {
         if (!domain || !isValidDomain(domain)) {
             console.log(`[Domain] Invalid domain format: ${domain}`);
             return res.status(400).json({ error: 'Invalid domain format' });
+        }
+
+        // Check if domain is blocked
+        if (isBlockedDomain(domain)) {
+            console.log(`[Domain] Blocked domain attempt: ${domain}`);
+            return res.status(403).json({ error: 'This domain cannot be used' });
+        }
+
+        // Check user's domain limit
+        const userDomainCount = await Domain.countDocuments({ user: req.user._id });
+        if (userDomainCount >= MAX_DOMAINS_PER_USER) {
+            console.log(`[Domain] User ${req.user._id} exceeded domain limit (${MAX_DOMAINS_PER_USER})`);
+            return res.status(429).json({
+                error: `You can only add up to ${MAX_DOMAINS_PER_USER} domains`
+            });
         }
 
         // Check if domain exists
@@ -125,6 +161,28 @@ router.post('/:id/verify', async (req, res) => {
 
     } catch (error) {
         console.error('[Domain] Verify domain error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// DELETE /api/domains/:id - Delete a domain
+router.delete('/:id', async (req, res) => {
+    try {
+        if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
+        const domain = await Domain.findOneAndDelete({
+            _id: req.params.id,
+            user: req.user._id
+        });
+
+        if (!domain) {
+            return res.status(404).json({ error: 'Domain not found' });
+        }
+
+        console.log(`[Domain] Deleted domain: ${domain.domain} for user ${req.user._id}`);
+        res.json({ success: true, message: 'Domain deleted successfully' });
+    } catch (error) {
+        console.error('[Domain] Delete domain error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });

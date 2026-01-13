@@ -6,7 +6,8 @@ import {
     Loader2,
     Copy,
     RefreshCw,
-    Plus
+    Plus,
+    Trash2
 } from 'lucide-react';
 import { baseUrl } from '../utils';
 
@@ -95,6 +96,28 @@ const CustomDomain = () => {
         }
     };
 
+    const handleDelete = async (id: string, domain: string) => {
+        if (!confirm(`Are you sure you want to delete "${domain}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`${baseUrl}/api/domains/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders(),
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to delete domain');
+
+            // Refresh list
+            handleFetch();
+            alert('Domain deleted successfully');
+        } catch (err: any) {
+            alert(err.message);
+        }
+    };
+
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
     };
@@ -161,6 +184,13 @@ const CustomDomain = () => {
                                     )}
                                 </div>
                             </div>
+                            <button
+                                onClick={() => handleDelete(d._id, d.domain)}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                title="Delete domain"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
                         </div>
 
                         {/* Verification Steps */}
