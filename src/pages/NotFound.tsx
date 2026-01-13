@@ -1,5 +1,4 @@
 import { AlertTriangle } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 const NotFound = () => {
     const currentDomain = window.location.hostname;
