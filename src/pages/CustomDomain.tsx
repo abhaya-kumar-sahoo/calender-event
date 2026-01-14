@@ -21,7 +21,7 @@ interface Domain {
     createdAt: string;
 }
 
-const MAX_DOMAINS = 2;
+const MAX_DOMAINS = 1;
 
 const CustomDomain = () => {
     const [domains, setDomains] = useState<Domain[]>([]);
