@@ -13,7 +13,7 @@ require('dns').setServers([
 // const sslManager = require('../utils/sslManager'); // Caddy handles SSL now
 
 // Configuration
-const MAX_DOMAINS_PER_USER = 10;
+const MAX_DOMAINS_PER_USER = 2;
 const BLOCKED_DOMAINS = [
     'google.com', 'facebook.com', 'twitter.com', 'instagram.com',
     'youtube.com', 'amazon.com', 'apple.com', 'microsoft.com',
