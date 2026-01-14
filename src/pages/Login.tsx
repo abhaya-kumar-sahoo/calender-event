@@ -47,15 +47,27 @@ export default function Login() {
 
           </div>
 
-          {/* Google Login */}
-          <button
-            type='button'
-            onClick={handleGoogleLogin}
-            className='w-full flex items-center justify-center gap-3 bg-white text-gray-700 border border-gray-300 rounded-xl px-4 py-3 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all focus:ring-4 focus:ring-gray-100 mb-8'
-          >
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="h-5 w-5" alt="Google" />
-            Sign in with Google
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            {/* Google Login */}
+            <button
+              type='button'
+              onClick={handleGoogleLogin}
+              className='w-full flex items-center justify-center gap-3 bg-white text-gray-700 border border-gray-300 rounded-xl px-4 py-3 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all focus:ring-4 focus:ring-gray-100'
+            >
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="h-5 w-5" alt="Google" />
+              Google
+            </button>
+
+            {/* Email Register */}
+            <button
+              type='button'
+              onClick={() => navigate('/register')}
+              className='w-full flex items-center justify-center gap-3 bg-white text-gray-700 border border-gray-300 rounded-xl px-4 py-3 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all focus:ring-4 focus:ring-gray-100'
+            >
+              <Mail className="h-5 w-5 text-gray-400" />
+              Email
+            </button>
+          </div>
 
           <div className="relative mb-8">
             <div className="absolute inset-0 flex items-center">
@@ -130,6 +142,13 @@ export default function Login() {
                 </>
               )}
             </button>
+
+            <p className='text-center text-sm text-gray-600 mt-6'>
+              New to Invite?{' '}
+              <Link to='/register' className='font-medium text-blue-600 hover:text-blue-500'>
+                Sign up for free
+              </Link>
+            </p>
           </form>
         </div>
       </div>

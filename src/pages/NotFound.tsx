@@ -22,7 +22,7 @@ const NotFound = () => {
                                 Domain Not Verified
                             </h2>
                             <p className="text-gray-600 mb-6 leading-relaxed">
-                                The domain <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-red-600">{currentDomain}</code> is not authorized to access this application.
+                                Your domain is not authorized to access this application.
                             </p>
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6 text-left">
                                 <h3 className="font-semibold text-blue-900 mb-3">To use this domain:</h3>

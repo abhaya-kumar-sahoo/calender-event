@@ -19,9 +19,10 @@ export default function Register() {
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
 
-    const [register, { isLoading: isRegistering }] = useRegisterMutation();
-    const [sendOtp, { isLoading: isSendingOtp }] = useSendOtpMutation();
+    const [register, { isLoading: isRegistering, }] = useRegisterMutation();
+    const [sendOtp, { isLoading: isSendingOtp, data, error: registerError }] = useSendOtpMutation();
     const navigate = useNavigate();
+    console.log({ data, registerError });
 
     const handleGoogleLogin = () => {
         window.location.href = `${baseUrl}/auth/google`;
@@ -49,7 +50,6 @@ export default function Register() {
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-
         try {
             await register({
                 name: formData.name,

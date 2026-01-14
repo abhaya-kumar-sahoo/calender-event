@@ -782,6 +782,7 @@ router.post("/otp/send", async (req, res) => {
         const html = getOtpEmailHtml(otp, type);
 
         const mailOptions = { to: email, subject: "Your Verification Code", html };
+        // console.log({ otp });
 
         // Send via primary SMTP as requested
         await sendConfirmationEmail(

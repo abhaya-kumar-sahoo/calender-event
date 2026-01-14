@@ -18,6 +18,7 @@ import LoadingScreen from './components/LoadingScreen';
 import CustomDomain from './pages/CustomDomain';
 import DomainGuard from './components/DomainGuard';
 import NotFound from './pages/NotFound';
+import Register from './pages/Register';
 
 console.log(import.meta.env.MODE);
 
@@ -64,7 +65,7 @@ function AppContent() {
       <Routes>
         <Route path='/' element={<PublicRoute><Home /></PublicRoute>} />
         <Route path='/login' element={<PublicRoute><Login /></PublicRoute>} />
-        {/* <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} /> */}
+        <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} />
         <Route path='/forgot-password' element={<PublicRoute><ForgotPassword /></PublicRoute>} />
 
         {/* Host Dashboard Routes (Protected) */}
