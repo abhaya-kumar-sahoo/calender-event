@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     bio: String,
     website: String,
     mapLink: String,
+    businessName: String,
     timezone: { type: String, default: 'UTC' },
     refreshToken: String,
 }, { timestamps: true });

@@ -32,6 +32,7 @@ export default function Profile() {
         mapLink: "",
         timezone: "",
         picture: "",
+        businessName: "",
     });
 
     useEffect(() => {
@@ -46,6 +47,7 @@ export default function Profile() {
                 mapLink: user.mapLink || "",
                 timezone: user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
                 picture: user.picture || "",
+                businessName: user.businessName || "",
             });
             setPreviewUrl(user.picture || "");
         }
@@ -77,6 +79,7 @@ export default function Profile() {
             data.append("website", formData.website);
             data.append("mapLink", formData.mapLink);
             data.append("timezone", formData.timezone);
+            data.append("businessName", formData.businessName);
 
             if (imageFile) {
                 data.append("picture", imageFile);
@@ -174,6 +177,16 @@ export default function Profile() {
                                         placeholder="Enter your full name"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Business Name</label>
+                                    <input
+                                        type="text"
+                                        className="w-full  px-5 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-gray-50/50 hover:bg-white"
+                                        placeholder="Enter your business name"
+                                        value={formData.businessName}
+                                        onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                                     />
                                 </div>
 

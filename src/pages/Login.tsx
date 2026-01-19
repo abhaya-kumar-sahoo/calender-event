@@ -87,12 +87,13 @@ export default function Login() {
             )}
 
             <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>Email address</label>
+              <label htmlFor="email" className='block text-sm font-medium text-gray-700 mb-1'>Email address</label>
               <div className='relative'>
                 <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                   <Mail className='h-5 w-5 text-gray-400' />
                 </div>
                 <input
+                  id="email"
                   type='email'
                   required
                   className='block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition-colors'
@@ -104,12 +105,13 @@ export default function Login() {
             </div>
 
             <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>Password</label>
+              <label htmlFor="password" className='block text-sm font-medium text-gray-700 mb-1'>Password</label>
               <div className='relative'>
                 <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                   <Lock className='h-5 w-5 text-gray-400' />
                 </div>
                 <input
+                  id="password"
                   type='password'
                   required
                   className='block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition-colors'

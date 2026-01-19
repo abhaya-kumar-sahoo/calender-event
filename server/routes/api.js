@@ -183,7 +183,7 @@ router.get("/public/events/:id", async (req, res) => {
     try {
         const event = await EventType.findById(req.params.id).populate(
             "userId",
-            "name email picture timezone"
+            "name email picture timezone businessName"
         );
         if (!event) return res.status(404).json({ message: "Event not found" });
         res.json(event);
@@ -589,7 +589,6 @@ router.post("/bookings", async (req, res) => {
         const startDate = new Date(startTime);
         const endDate = new Date(startDate.getTime() + (eventDuration || 60) * 60000);
         const tz = timezone || "Asia/Kolkata";
-        console.log({ timezone, tz, startDate });
 
         // "Thursday 8 Jan 2026"
         const datePart = formatInTimeZone(startDate, tz, "eeee d MMM yyyy");
@@ -615,6 +614,11 @@ router.post("/bookings", async (req, res) => {
             meetingLink,
             guestMobile,
             notes,
+            hostName: host.name,
+            hostBusinessName: host.businessName,
+            hostAddress: host.address,
+            hostWebsite: host.website,
+            hostPhone: host.phoneNumber,
         });
 
         // Format for Host Email
@@ -633,6 +637,10 @@ router.post("/bookings", async (req, res) => {
             duration: eventDuration,
             timezone,
             selectedLink,
+            hostBusinessName: host.businessName,
+            hostAddress: host.address,
+            hostWebsite: host.website,
+            hostPhone: host.phoneNumber,
         });
 
         // Send to Guests
@@ -779,7 +787,14 @@ router.post("/otp/send", async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         otpStore.set(email, { otp, expires: Date.now() + OTP_EXPIRY });
 
-        const html = getOtpEmailHtml(otp, type);
+        const html = getOtpEmailHtml(
+            otp,
+            type,
+            hostUser?.businessName,
+            hostUser?.website,
+            hostUser?.address,
+            hostUser?.phoneNumber
+        );
 
         const mailOptions = { to: email, subject: "Your Verification Code", html };
         // console.log({ otp });

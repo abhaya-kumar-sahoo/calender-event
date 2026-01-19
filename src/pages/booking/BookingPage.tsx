@@ -358,7 +358,7 @@ export default function BookingPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Confirmed</h2>
           <p className="text-gray-600 mb-6">
             You are scheduled with{" "}
-            {event.host || "Heritage Lane & Co Furniture"}.
+            {event?.host}.
           </p>
 
           <div className="bg-gray-50 rounded-lg p-4 text-left mb-8 border border-gray-100">
@@ -436,7 +436,7 @@ export default function BookingPage() {
           )}
 
           <div className="text-gray-500 font-medium mb-1">
-            {event.host || "Heritage Lane and Co Furniture"}
+            {event?.host}
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
             {event.title}

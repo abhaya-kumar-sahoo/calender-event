@@ -9,7 +9,6 @@ export default function Meetings() {
   const { bookings, events, cancelBooking, updateBooking } = useStore();
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  console.log({ bookings });
 
   // Modal State
   const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
@@ -148,7 +147,7 @@ export default function Meetings() {
                           {format(
                             new Date(
                               startDate.getTime() +
-                                (eventType?.duration || 30) * 60000
+                              (eventType?.duration || 30) * 60000
                             ),
                             'h:mm a'
                           )}
@@ -244,11 +243,11 @@ export default function Meetings() {
                             Meeting Host
                           </h3>
                           <p className='text-gray-900'>
-                            Heritage Lane & Co Furniture
+                            {booking?.host}
                           </p>
                         </div>
 
-                        {booking.notes && (
+                        {booking?.notes && (
                           <div>
                             <h3 className='text-xs font-bold text-gray-400 uppercase tracking-wider mb-1'>
                               Notes

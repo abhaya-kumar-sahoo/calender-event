@@ -58,7 +58,7 @@ const getEmailHeader = () => `
 </head>
 `;
 
-const getEmailBrandingHeader = () => `
+const getEmailBrandingHeader = (businessName = "Invite") => `
 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#fce5cd;">
     <tr>
         <td align="center" valign="top"
@@ -74,7 +74,7 @@ const getEmailBrandingHeader = () => `
                 <v:textbox inset='0,0,0,0'>
             <![endif]-->
             <img src="https://calender-event.s3.ap-south-1.amazonaws.com/event-images/logo.png"
-                 alt="Heritage Lane & Co" 
+                 alt="${businessName}" 
                  style="display:block; width:60%; max-width:200px; height:auto;">
             <!--[if gte mso 9]>
                 </v:textbox>
@@ -85,7 +85,7 @@ const getEmailBrandingHeader = () => `
 </table>
 `;
 
-const getEmailFooter = () => `
+const getEmailFooter = (businessName = "Invite", website = "#", address = "", phoneNumber = "") => `
 <!-- Stay Connected Footer -->
 <div class="footer-box" style="background-color: #fce5cd; padding: 40px 20px; text-align: center;">
     <h3 class="footer-text" style="color: #8c6239; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 20px 0; font-weight: normal; font-size: 20px;">Stay Connected</h3>
@@ -94,11 +94,11 @@ const getEmailFooter = () => `
     <div style="margin-bottom: 30px;">
         <a href="#" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" width="24" height="24" alt="FB"></a>
         <a href="#" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="24" height="24" alt="IG"></a>
-        <a href="tel:0468727125" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/159/159832.png" width="24" height="24" alt="Call"></a>
-        <a href="https://heritagelane.com.au" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png" width="24" height="24" alt="Web"></a>
+        ${phoneNumber ? `<a href="tel:${phoneNumber}" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/159/159832.png" width="24" height="24" alt="Call"></a>` : ""}
+        <a href="${website}" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png" width="24" height="24" alt="Web"></a>
     </div>
 
-    <p class="footer-text" style="font-size: 12px; color: #8c6239; margin-bottom: 20px;">Address - 1/22-30 Wallace Ave, Point Cook VIC 3030, Australia</p>
+    ${address ? `<p class="footer-text" style="font-size: 12px; color: #8c6239; margin-bottom: 20px;">Address - ${address}</p>` : ""}
 
     <!-- Bottom Decorative Arch -->
     <div style="width: 80px; height: 60px; margin: 0 auto; border: 2px solid #d4a373; border-bottom: none; border-radius: 80px 80px 0 0; position: relative; padding-top: 15px;">
@@ -116,27 +116,36 @@ const getGuestEmailHtml = ({
     meetingLink,
     guestMobile,
     notes,
+    hostBusinessName,
+    hostAddress,
+    hostWebsite,
+    hostPhone,
 }) => {
+    const businessName = hostBusinessName || "Invite";
+    const address = hostAddress || eventData.locationAddress || "";
+    const website = hostWebsite || "#";
+    const phoneNumber = hostPhone || "";
+
     return `
 <!DOCTYPE html>
 <html lang="en">
 ${getEmailHeader()}
 <body class="body" style="margin: 0; padding: 0; background-color: #f4f4f4;">
     <div class="email-container" style="font-family: 'Playfair Display', serif, sans-serif; max-width: 600px; margin: 20px auto; background-color: #ffffff; color: #4a4a4a; line-height: 1.6; border: 1px solid #eeeeee; border-radius: 8px; overflow: hidden;">
-        ${getEmailBrandingHeader()}
+        ${getEmailBrandingHeader(businessName)}
 
         <div style="padding: 40px 50px;">
-            <h2 class="text-main" style="font-size: 18px; margin-bottom: 25px; font-weight: bold;">Your Heritage Lane Furniture Viewing is Confirmed</h2>
+            <h2 class="text-main" style="font-size: 18px; margin-bottom: 25px; font-weight: bold;">Your ${businessName} Viewing is Confirmed</h2>
 
             <p class="text-main" style="font-size: 16px; margin-bottom: 25px;">Hi ${guestName},</p>
             
-            <p class="text-main" style="font-size: 14px; margin-bottom: 20px;">Thank you for booking an Exclusive viewing at Heritage Lane & Co. Your appointment is confirmed for <strong>${formattedDate}</strong> at our showroom.</p>
+            <p class="text-main" style="font-size: 14px; margin-bottom: 20px;">Thank you for booking an Exclusive viewing at ${businessName}. Your appointment is confirmed for <strong>${formattedDate}</strong> at our showroom.</p>
             
             <p class="text-main" style="font-size: 14px; margin-bottom: 25px;">During your visit, you’ll be discover our handcrafted teakwood furniture up close, explore different styles and finishes that bring a distinct character and warm ambience to your home. During your visit you are welcome to discuss any custom requirements with our team. Stay as long as you like, explore every detail, and experience how true craftsmanship and solid wood comfort can transform your home.</p>
 
 
 
- ${eventData.location === "gmeet" && meetingLink
+  ${eventData.location === "gmeet" && meetingLink
             ? `
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
                     <p class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;">Google Meet Link</p>
@@ -146,26 +155,24 @@ ${getEmailHeader()}
             : `
 
             <div class="info-card" style="margin-bottom: 25px; padding: 15px; background-color: #f9fafb; border-radius: 8px; border: 1px solid #f3f4f6;">
-                <p class="text-main" style="font-size: 14px; margin: 0;"><strong>Location:</strong> Heritage Lane & Co. Showroom</p>
-                <p class="text-main" style="font-size: 14px; margin: 4px 0;"><strong>Address:</strong> ${eventData.locationAddress ||
-            "1/22–30 Wallace Ave, Point Cook VIC 3030"
-            }</p>
+                <p class="text-main" style="font-size: 14px; margin: 0;"><strong>Location:</strong> ${businessName} Showroom</p>
+                <p class="text-main" style="font-size: 14px; margin: 4px 0;"><strong>Address:</strong> ${address}</p>
             </div>
                 `
         }
 
 
 
-            <p class="text-main" style="font-size: 14px; margin-bottom: 25px;">If you need to reschedule or have any questions before your visit, simply reply to this email or call us on <strong>0 468 727 125</strong>.</p>
+            <p class="text-main" style="font-size: 14px; margin-bottom: 25px;">If you need to reschedule or have any questions before your visit, simply reply to this email${phoneNumber ? ` or call us on <strong>${phoneNumber}</strong>` : ""}.</p>
 
-            <p class="text-main" style="font-size: 14px; margin-bottom: 30px;">We look forward to welcoming you to Heritage Lane & Co. and helping you find furniture you’ll truly fall in love with.</p>
+            <p class="text-main" style="font-size: 14px; margin-bottom: 30px;">We look forward to welcoming you to ${businessName} and helping you find furniture you’ll truly fall in love with.</p>
 
             <p class="text-main" style="font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666 !important;">
                 <strong>PS:</strong> As promised, your exclusive 15% discount is waiting! 🌟 Use code <strong>INVITE15</strong> on our website or show this email in-store to unlock savings across our entire range.
             </p>
         </div>
 
-        ${getEmailFooter()}
+        ${getEmailFooter(businessName, website, address, phoneNumber)}
 
       
     </div>
@@ -188,16 +195,20 @@ const getHostEmailHtml = ({
     duration,
     timezone,
     selectedLink,
+    hostBusinessName,
+    hostAddress,
+    hostWebsite,
+    hostPhone,
 }) => `
 <!DOCTYPE html>
 <html lang="en">
 ${getEmailHeader()}
 <body class="body" style="margin: 0; padding: 0; background-color: #f4f4f4;">
     <div class="email-container" style="font-family: 'Playfair Display', serif, sans-serif; max-width: 600px; margin: 20px auto; background-color: #ffffff; color: #4a4a4a; line-height: 1.6; border: 1px solid #eeeeee; border-radius: 8px; overflow: hidden;">
-        ${getEmailBrandingHeader()}
+        ${getEmailBrandingHeader(hostBusinessName || "Invite")}
 
         <div style="padding: 40px 50px;">
-            <p class="text-main" style="font-size: 16px; margin-bottom: 25px;">Hi ${hostName || "Heritage Lane & Co Furniture"
+            <p class="text-main" style="font-size: 16px; margin-bottom: 25px;">Hi ${hostName || hostBusinessName || "Invite"
     },</p>
             
             <p class="text-main" style="font-size: 14px; margin-bottom: 30px;">A new invitee has been scheduled for your event.</p>
@@ -295,13 +306,13 @@ ${guestMobile
             </div>
         </div>
 
-        ${getEmailFooter()}
+        ${getEmailFooter(hostBusinessName || "Invite", hostWebsite, hostAddress, hostPhone)}
     </div>
 </body>
 </html>
 `;
 
-const getOtpEmailHtml = (otp, type = 'booking') => {
+const getOtpEmailHtml = (otp, type = 'booking', businessName = "Invite", website = "#", address = "", phoneNumber = "") => {
     let title = 'Verify Your Email';
     let message = 'Please use the following code to confirm your email address and complete your booking.';
 
@@ -319,7 +330,7 @@ const getOtpEmailHtml = (otp, type = 'booking') => {
 ${getEmailHeader()}
 <body class="body" style="margin: 0; padding: 0; background-color: #f4f4f4;">
     <div class="email-container" style="font-family: 'Playfair Display', serif, sans-serif; max-width: 600px; margin: 20px auto; background-color: #ffffff; color: #4a4a4a; line-height: 1.6; border: 1px solid #eeeeee; border-radius: 8px; overflow: hidden;">
-        ${getEmailBrandingHeader()}
+        ${getEmailBrandingHeader(businessName)}
 
         <div style="padding: 50px 50px; text-align: center;">
             <h2 class="text-main" style="color: #111827; margin: 0 0 20px 0; font-size: 24px;">${title}</h2>
@@ -332,7 +343,7 @@ ${getEmailHeader()}
             <p class="text-sub" style="font-size: 13px; color: #999;">This code will expire in 5 minutes. If you did not request this, please ignore this email.</p>
         </div>
 
-        ${getEmailFooter()}
+        ${getEmailFooter(businessName, website, address, phoneNumber)}
     </div>
 </body>
 </html>
