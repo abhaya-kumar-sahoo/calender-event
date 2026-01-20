@@ -14,6 +14,7 @@ export default function DashboardLayout() {
     { label: 'Scheduling', path: '/dashboard', icon: LinkIcon, exact: true },
     { label: 'Meetings', path: '/dashboard/meetings', icon: Calendar },
     { label: 'Contacts', path: '/dashboard/contacts', icon: Users },
+    { label: 'Email Templates', path: '/dashboard/email-templates', icon: LinkIcon },
     { label: 'Profile', path: '/dashboard/profile', icon: User },
   ];
 

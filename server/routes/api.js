@@ -9,6 +9,8 @@ const {
     getGuestEmailHtml,
     getHostEmailHtml,
     getOtpEmailHtml,
+    renderTemplate,
+    GUEST_CONSTANTS,
 } = require("../utils/emailTemplates");
 const { upload } = require("../utils/s3");
 
@@ -619,6 +621,8 @@ router.post("/bookings", async (req, res) => {
             hostAddress: host.address,
             hostWebsite: host.website,
             hostPhone: host.phoneNumber,
+            customBody: host.emailTemplates?.guestConfirmation?.body,
+            bodyBlocks: host.emailTemplates?.guestConfirmation?.bodyBlocks
         });
 
         // Format for Host Email
@@ -641,17 +645,24 @@ router.post("/bookings", async (req, res) => {
             hostAddress: host.address,
             hostWebsite: host.website,
             hostPhone: host.phoneNumber,
+            customBody: host.emailTemplates?.hostNotification?.body
         });
+
+        const guestSubject = renderTemplate(GUEST_CONSTANTS.subject, { eventTitle, hostName: host.name });
 
         // Send to Guests
         allGuests.forEach((email) =>
-            sendConfirmationEmail(email, emailSubject, guestEmailHtml)
+            sendConfirmationEmail(email, guestSubject, guestEmailHtml)
         );
+
+        const hostSubject = host.emailTemplates?.hostNotification?.subject
+            ? renderTemplate(host.emailTemplates.hostNotification.subject, { guestName, eventTitle })
+            : `New Booking: ${guestName} - ${eventTitle}`;
 
         // Send to Host
         sendConfirmationEmail(
             host.email,
-            `New Booking: ${guestName} - ${eventTitle}`,
+            hostSubject,
             hostEmailHtml
         );
 
@@ -814,23 +825,77 @@ router.post("/otp/send", async (req, res) => {
 router.post("/otp/verify", async (req, res) => {
     try {
         const { email, otp } = req.body;
-        const storedData = otpStore.get(email);
+        const stored = otpStore.get(email);
+        if (!stored || stored.otp !== otp || stored.expires < Date.now()) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+        otpStore.delete(email);
+        res.json({ message: "OTP verified", success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
-        if (!storedData) {
-            return res.status(400).json({ message: "OTP not found or expired" });
+// --- Email Template Customization ---
+router.put("/user/email-templates", isAuthenticated, async (req, res) => {
+    try {
+        const { guestConfirmation } = req.body;
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        if (guestConfirmation) {
+            user.emailTemplates.guestConfirmation = guestConfirmation;
         }
 
-        if (Date.now() > storedData.expires) {
-            otpStore.delete(email);
-            return res.status(400).json({ message: "OTP expired" });
+        await user.save();
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post("/user/email-templates/preview", isAuthenticated, async (req, res) => {
+    try {
+        const { type, template, subjectTemplate, bodyBlocks } = req.body;
+
+        const dummyData = {
+            guestName: "John Doe",
+            hostName: req.user.name,
+            eventTitle: "Consultation Call",
+            formattedDate: "Monday, Jan 20 ⋅ 10:00 AM – 11:00 AM (IST - Kolkata)",
+            timezone: "Asia/Kolkata",
+            meetingLink: "https://meet.google.com/abc-defg-hij",
+            guestMobile: "+1234567890",
+            notes: "I want to discuss the new project details.",
+            businessName: req.user.businessName || "Invite",
+            address: req.user.address || "123 Business St, City",
+            website: req.user.website || "https://example.com",
+            phoneNumber: req.user.phoneNumber || "+0987654321",
+            duration: 60,
+            guestEmail: "john@example.com",
+            additionalGuests: ["Jane Doe", "Bob Smith"]
+        };
+
+        let html = "";
+        let subject = "";
+
+        if (type === "guestConfirmation") {
+            html = getGuestEmailHtml({
+                ...dummyData,
+                eventData: { location: "gmeet" },
+                hostBusinessName: dummyData.businessName,
+                hostAddress: dummyData.address,
+                hostWebsite: dummyData.website,
+                hostPhone: dummyData.phoneNumber,
+                bodyBlocks: bodyBlocks
+            });
+            subject = renderTemplate(GUEST_CONSTANTS.subject, {
+                eventTitle: dummyData.eventTitle,
+                hostName: dummyData.hostName
+            });
         }
 
-        if (storedData.otp === otp) {
-            otpStore.delete(email);
-            res.json({ success: true, message: "Email verified successfully" });
-        } else {
-            res.status(400).json({ success: false, message: "Invalid OTP" });
-        }
+        res.json({ html, subject });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

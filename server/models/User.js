@@ -12,8 +12,18 @@ const userSchema = new mongoose.Schema({
     website: String,
     mapLink: String,
     businessName: String,
-    timezone: { type: String, default: 'UTC' },
     refreshToken: String,
+    emailTemplates: {
+        guestConfirmation: {
+            subject: { type: String, default: "Confirmation: {{eventTitle}} with {{hostName}}" },
+            body: { type: String },
+            bodyBlocks: { type: [String], default: [] }
+        },
+        hostNotification: {
+            subject: { type: String, default: "New Booking: {{guestName}} - {{eventTitle}}" },
+            body: { type: String }
+        }
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

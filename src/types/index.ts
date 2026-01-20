@@ -71,3 +71,27 @@ export interface Booking {
 }
 
 export type ViewMode = "desktop" | "mobile";
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  picture?: string;
+  phoneNumber?: string;
+  address?: string;
+  bio?: string;
+  website?: string;
+  mapLink?: string;
+  businessName?: string;
+  timezone: string;
+  emailTemplates?: {
+    guestConfirmation?: {
+      subject: string;
+      body: string;
+    };
+    hostNotification?: {
+      subject: string;
+      body: string;
+    };
+  };
+}

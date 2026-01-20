@@ -50,6 +50,21 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    updateEmailTemplates: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "/api/user/email-templates",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    previewEmailTemplate: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "/api/user/email-templates/preview",
+        method: "POST",
+        body,
+      }),
+    }),
 
     // Events
     getEvents: builder.query<EventType[], void>({
@@ -163,6 +178,8 @@ export const {
   useResetPasswordMutation,
   useLogoutMutation,
   useUpdateProfileMutation,
+  useUpdateEmailTemplatesMutation,
+  usePreviewEmailTemplateMutation,
   useGetEventsQuery,
   useGetPublicEventQuery,
   useGetSlotAvailabilityQuery,

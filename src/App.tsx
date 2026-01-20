@@ -16,6 +16,7 @@ import Home from './pages/Home';
 import Profile from './pages/dashboard/Profile';
 import LoadingScreen from './components/LoadingScreen';
 import CustomDomain from './pages/CustomDomain';
+import EmailTemplates from './pages/dashboard/EmailTemplates';
 import DomainGuard from './components/DomainGuard';
 import NotFound from './pages/NotFound';
 import Register from './pages/Register';
@@ -82,6 +83,7 @@ function AppContent() {
           <Route path='contacts' element={<Contacts />} />
           <Route path='profile' element={<Profile />} />
           <Route path='custom-domain' element={<CustomDomain />} />
+          <Route path='email-templates' element={<EmailTemplates />} />
         </Route>
 
         {/* Public Booking Page */}
