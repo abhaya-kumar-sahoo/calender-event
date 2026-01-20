@@ -622,7 +622,10 @@ router.post("/bookings", async (req, res) => {
             hostWebsite: host.website,
             hostPhone: host.phoneNumber,
             customBody: host.emailTemplates?.guestConfirmation?.body,
-            bodyBlocks: host.emailTemplates?.guestConfirmation?.bodyBlocks
+            bodyBlocks: host.emailTemplates?.guestConfirmation?.bodyBlocks,
+            hostInstagram: host.instagram,
+            hostFacebook: host.facebook,
+            hostProfileImage: host.picture
         });
 
         // Format for Host Email
@@ -645,7 +648,10 @@ router.post("/bookings", async (req, res) => {
             hostAddress: host.address,
             hostWebsite: host.website,
             hostPhone: host.phoneNumber,
-            customBody: host.emailTemplates?.hostNotification?.body
+            customBody: host.emailTemplates?.hostNotification?.body,
+            hostInstagram: host.instagram,
+            hostFacebook: host.facebook,
+            hostProfileImage: host.picture
         });
 
         const guestSubject = renderTemplate(GUEST_CONSTANTS.subject, { eventTitle, hostName: host.name });
@@ -887,7 +893,10 @@ router.post("/user/email-templates/preview", isAuthenticated, async (req, res) =
                 hostAddress: dummyData.address,
                 hostWebsite: dummyData.website,
                 hostPhone: dummyData.phoneNumber,
-                bodyBlocks: bodyBlocks
+                bodyBlocks: bodyBlocks,
+                hostInstagram: req.user.instagram,
+                hostFacebook: req.user.facebook,
+                hostProfileImage: req.user.picture
             });
             subject = renderTemplate(GUEST_CONSTANTS.subject, {
                 eventTitle: dummyData.eventTitle,

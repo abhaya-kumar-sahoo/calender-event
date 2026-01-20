@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema({
     website: String,
     mapLink: String,
     businessName: String,
+    instagram: String,
+    facebook: String,
     refreshToken: String,
     emailTemplates: {
         guestConfirmation: {

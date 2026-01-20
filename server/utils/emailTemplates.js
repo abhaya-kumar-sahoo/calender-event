@@ -58,7 +58,7 @@ const getEmailHeader = () => `
 </head>
 `;
 
-const getEmailBrandingHeader = (businessName = "Invite") => `
+const getEmailBrandingHeader = (businessName = "Invite", profileImage) => `
 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#fce5cd;">
     <tr>
         <td align="center" valign="top"
@@ -73,9 +73,9 @@ const getEmailBrandingHeader = (businessName = "Invite") => `
                 <v:fill type='frame' src='https://calender-event.s3.ap-south-1.amazonaws.com/event-images/Group.png' color='#fce5cd'/>
                 <v:textbox inset='0,0,0,0'>
             <![endif]-->
-            <img src="https://calender-event.s3.ap-south-1.amazonaws.com/event-images/logo.png"
+            <img src="${profileImage || 'https://calender-event.s3.ap-south-1.amazonaws.com/event-images/logo.png'}"
                  alt="${businessName}" 
-                 style="display:block; width:60%; max-width:200px; height:auto;">
+                 style="display:block; width:30%; height:100px  ;  object-fit: fill;">
             <!--[if gte mso 9]>
                 </v:textbox>
             </v:rect>
@@ -85,24 +85,24 @@ const getEmailBrandingHeader = (businessName = "Invite") => `
 </table>
 `;
 
-const getEmailFooter = (businessName = "Invite", website = "#", address = "", phoneNumber = "") => `
+const getEmailFooter = (businessName = "Invite", website = "#", address = "", phoneNumber = "", instagram = "", facebook = "", profileImage) => `
 <!-- Stay Connected Footer -->
 <div class="footer-box" style="background-color: #fce5cd; padding: 40px 20px; text-align: center;">
     <h3 class="footer-text" style="color: #8c6239; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 20px 0; font-weight: normal; font-size: 20px;">Stay Connected</h3>
     <div style="border-top: 1px solid #d4a373; width: 80%; margin: 0 auto 25px auto;"></div>
     
     <div style="margin-bottom: 30px;">
-        <a href="#" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" width="24" height="24" alt="FB"></a>
-        <a href="#" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="24" height="24" alt="IG"></a>
+        ${facebook ? `<a href="${facebook}" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" width="24" height="24" alt="FB"></a>` : ""}
+        ${instagram ? `<a href="${instagram}" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="24" height="24" alt="IG"></a>` : ""}
         ${phoneNumber ? `<a href="tel:${phoneNumber}" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/159/159832.png" width="24" height="24" alt="Call"></a>` : ""}
-        <a href="${website}" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png" width="24" height="24" alt="Web"></a>
+        ${website ? `<a href="${website}" style="text-decoration: none; margin: 0 10px;"><img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png" width="24" height="24" alt="Web"></a>` : ""}
     </div>
 
     ${address ? `<p class="footer-text" style="font-size: 12px; color: #8c6239; margin-bottom: 20px;">Address - ${address}</p>` : ""}
 
     <!-- Bottom Decorative Arch -->
     <div style="width: 80px; height: 60px; margin: 0 auto; border: 2px solid #d4a373; border-bottom: none; border-radius: 80px 80px 0 0; position: relative; padding-top: 15px;">
-        <img src="https://calender-event.s3.ap-south-1.amazonaws.com/event-images/logo.png" width="30" alt="logo">
+        <img src=${profileImage || "https://calender-event.s3.ap-south-1.amazonaws.com/event-images/logo.png"} width="30" alt="logo">
     </div>
 </div>
 `;
@@ -151,11 +151,17 @@ const getGuestEmailHtml = ({
     hostPhone,
     customBody,
     bodyBlocks,
+    hostInstagram,
+    hostFacebook,
+    hostProfileImage
 }) => {
     const businessName = hostBusinessName || "Invite";
     const address = hostAddress || eventData.locationAddress || "";
     const website = hostWebsite || "#";
     const phoneNumber = hostPhone || "";
+    const instagram = hostInstagram || "";
+    const facebook = hostFacebook || "";
+    const profileImage = hostProfileImage || "";
 
     const defaultBody = `
         <h2 class="text-main" style="font-size: 18px; margin-bottom: 25px; font-weight: bold;">Your appointment with ${businessName} is Confirmed</h2>
@@ -237,7 +243,7 @@ const getGuestEmailHtml = ({
 ${getEmailHeader()}
 <body class="body" style="margin: 0; padding: 0; background-color: #f4f4f4;">
     <div class="email-container" style="font-family: 'Playfair Display', serif, sans-serif; max-width: 600px; margin: 20px auto; background-color: #ffffff; color: #4a4a4a; line-height: 1.6; border: 1px solid #eeeeee; border-radius: 8px; overflow: hidden;">
-        ${getEmailBrandingHeader(businessName)}
+        ${getEmailBrandingHeader(businessName, profileImage)}
 
         <div style="padding: 40px 50px;">
             ${bodyContent}
@@ -247,7 +253,7 @@ ${getEmailHeader()}
             </p>
         </div>
 
-        ${getEmailFooter(businessName, website, address, phoneNumber)}
+        ${getEmailFooter(businessName, website, address, phoneNumber, instagram, facebook, profileImage)}
     </div>
 </body>
 </html>
@@ -273,6 +279,9 @@ const getHostEmailHtml = ({
     hostWebsite,
     hostPhone,
     customBody,
+    hostInstagram,
+    hostFacebook,
+    hostProfileImage
 }) => {
     const defaultBody = `
         <p class="text-main" style="font-size: 16px; margin-bottom: 25px;">Hi ${hostName || hostBusinessName || "Invite"},</p>
@@ -378,7 +387,7 @@ const getHostEmailHtml = ({
 ${getEmailHeader()}
 <body class="body" style="margin: 0; padding: 0; background-color: #f4f4f4;">
     <div class="email-container" style="font-family: 'Playfair Display', serif, sans-serif; max-width: 600px; margin: 20px auto; background-color: #ffffff; color: #4a4a4a; line-height: 1.6; border: 1px solid #eeeeee; border-radius: 8px; overflow: hidden;">
-        ${getEmailBrandingHeader(hostBusinessName || "Invite")}
+        ${getEmailBrandingHeader(hostBusinessName || "Invite", hostProfileImage)}
 
         <div style="padding: 40px 50px;">
             ${bodyContent}
@@ -388,7 +397,7 @@ ${getEmailHeader()}
             </p>
         </div>
 
-        ${getEmailFooter(hostBusinessName || "Invite", hostWebsite, hostAddress, hostPhone)}
+        ${getEmailFooter(hostBusinessName || "Invite", hostWebsite, hostAddress, hostPhone, hostInstagram, hostFacebook, hostProfileImage)}
     </div>
 </body>
 </html>
@@ -426,7 +435,7 @@ ${getEmailHeader()}
             <p class="text-sub" style="font-size: 13px; color: #999;">This code will expire in 5 minutes. If you did not request this, please ignore this email.</p>
         </div>
 
-        ${getEmailFooter(businessName, website, address, phoneNumber)}
+        ${getEmailFooter(businessName, website, address, phoneNumber, null, null, profileImage)}
     </div>
 </body>
 </html>

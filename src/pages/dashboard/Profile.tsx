@@ -33,6 +33,8 @@ export default function Profile() {
         timezone: "",
         picture: "",
         businessName: "",
+        instagram: "",
+        facebook: "",
     });
 
     useEffect(() => {
@@ -48,6 +50,8 @@ export default function Profile() {
                 timezone: user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
                 picture: user.picture || "",
                 businessName: user.businessName || "",
+                instagram: user.instagram || "",
+                facebook: user.facebook || "",
             });
             setPreviewUrl(user.picture || "");
         }
@@ -80,6 +84,8 @@ export default function Profile() {
             data.append("mapLink", formData.mapLink);
             data.append("timezone", formData.timezone);
             data.append("businessName", formData.businessName);
+            data.append("instagram", formData.instagram);
+            data.append("facebook", formData.facebook);
 
             if (imageFile) {
                 data.append("picture", imageFile);
@@ -227,6 +233,33 @@ export default function Profile() {
                                             placeholder="https://yourwebsite.com"
                                             value={formData.website}
                                             onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                                        />
+                                        <Globe className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Instagram URL</label>
+                                    <div className="relative">
+                                        <input
+                                            type="url"
+                                            className="w-full pl-5 pr-12 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-gray-50/50 hover:bg-white"
+                                            placeholder="https://instagram.com/..."
+                                            value={formData.instagram}
+                                            onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                                        />
+                                        <Globe className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Facebook URL</label>
+                                    <div className="relative">
+                                        <input
+                                            type="url"
+                                            className="w-full pl-5 pr-12 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-gray-50/50 hover:bg-white"
+                                            placeholder="https://facebook.com/..."
+                                            value={formData.facebook}
+                                            onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
                                         />
                                         <Globe className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                                     </div>
