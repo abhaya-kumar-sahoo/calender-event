@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import {
     useCheckAuthQuery,
     useUpdateEmailTemplatesMutation,
-    usePreviewEmailTemplateMutation,
+    // usePreviewEmailTemplateMutation,
 } from "../../store/apiSlice";
-import { Mail, Eye, Save, Info, AlertCircle, CheckCircle2, Copy, Plus, X } from "lucide-react";
+import { Mail, Save, Info, AlertCircle, CheckCircle2, Copy, Plus, X } from "lucide-react";
 import clsx from "clsx";
 
 interface TemplateState {
@@ -48,7 +48,7 @@ const DEFAULT_TEMPLATES = {
 const EmailTemplates: React.FC = () => {
     const { data: user } = useCheckAuthQuery();
     const [updateEmailTemplates, { isLoading: isUpdating }] = useUpdateEmailTemplatesMutation();
-    const [previewEmailTemplate, { isLoading: isPreviewing }] = usePreviewEmailTemplateMutation();
+    // const [previewEmailTemplate] = usePreviewEmailTemplateMutation();
 
     const [templates, setTemplates] = useState<{
         guestConfirmation: TemplateState;
@@ -56,9 +56,9 @@ const EmailTemplates: React.FC = () => {
         guestConfirmation: DEFAULT_TEMPLATES.guestConfirmation,
     });
 
-    const [previewHtml, setPreviewHtml] = useState<string | null>(null);
-    const [previewSubject, setPreviewSubject] = useState<string | null>(null);
-    const [showPreview, setShowPreview] = useState(false);
+    // const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+    // const [previewSubject, setPreviewSubject] = useState<string | null>(null);
+    // const [showPreview, setShowPreview] = useState(false);
     const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
 
     useEffect(() => {
@@ -84,19 +84,19 @@ const EmailTemplates: React.FC = () => {
         }
     };
 
-    const handlePreview = async () => {
-        try {
-            const result = await previewEmailTemplate({
-                type: "guestConfirmation",
-                bodyBlocks: templates.guestConfirmation.bodyBlocks,
-            }).unwrap();
-            setPreviewHtml(result.html);
-            setPreviewSubject(result.subject);
-            setShowPreview(true);
-        } catch (err) {
-            console.error("Preview failed:", err);
-        }
-    };
+    // const handlePreview = async () => {
+    //     try {
+    //         const result = await previewEmailTemplate({
+    //             type: "guestConfirmation",
+    //             bodyBlocks: templates.guestConfirmation.bodyBlocks,
+    //         }).unwrap();
+    //         setPreviewHtml(result.html);
+    //         setPreviewSubject(result.subject);
+    //         setShowPreview(true);
+    //     } catch (err) {
+    //         console.error("Preview failed:", err);
+    //     }
+    // };
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(`{{${text}}}`);
@@ -315,7 +315,7 @@ const EmailTemplates: React.FC = () => {
                 </div>
             </div>
 
-            {showPreview && (
+            {/* {showPreview && (
                 <div className="fixed inset-0 z-60 flex items-center justify-center p-4 md:p-8">
                     <div
                         className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
@@ -356,7 +356,7 @@ const EmailTemplates: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
         </div>
     );
 };
