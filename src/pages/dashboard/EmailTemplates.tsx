@@ -151,14 +151,14 @@ const EmailTemplates: React.FC = () => {
                     <p className="text-gray-500 mt-2">Customize the guest confirmation email.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button
+                    {/* <button
                         onClick={handlePreview}
                         disabled={isPreviewing}
                         className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm active:scale-95 disabled:opacity-50"
                     >
                         <Eye className="w-5 h-5" />
                         Preview
-                    </button>
+                    </button> */}
                     <button
                         onClick={handleSave}
                         disabled={isUpdating}
@@ -196,7 +196,7 @@ const EmailTemplates: React.FC = () => {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="space-y-8">
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700 ml-1">Subject Line (Constant)</label>
+                                <label className="text-sm font-bold text-gray-700 ml-1">Subject Line</label>
                                 <div className="relative group">
                                     <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                     <input
@@ -211,7 +211,7 @@ const EmailTemplates: React.FC = () => {
                             <div className="p-6 bg-blue-50/50 rounded-4xl border border-blue-100/50 space-y-4">
                                 <div className="flex items-center gap-2 mb-2">
                                     <Info className="w-5 h-5 text-blue-600" />
-                                    <h3 className="font-bold text-blue-900 text-sm">Static Email Header</h3>
+                                    <h3 className="font-bold text-blue-900 text-sm">Email Header</h3>
                                 </div>
                                 <pre className="text-sm text-blue-800 whitespace-pre-wrap font-sans leading-relaxed opacity-70">
                                     {GUEST_CONSTANTS.intro}
@@ -220,7 +220,7 @@ const EmailTemplates: React.FC = () => {
 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between ml-1">
-                                    <label className="text-sm font-bold text-gray-700">Dynamic Body Blocks</label>
+                                    <label className="text-sm font-bold text-gray-700">Body Blocks</label>
                                     <p className="text-xs text-gray-500 font-medium">Max 3 blocks, 50 words per block</p>
                                 </div>
 
@@ -279,7 +279,7 @@ const EmailTemplates: React.FC = () => {
                             <div className="p-6 bg-gray-50 rounded-4xl border border-gray-100 space-y-4">
                                 <div className="flex items-center gap-2 mb-2">
                                     <Info className="w-5 h-5 text-gray-400" />
-                                    <h3 className="font-bold text-gray-700 text-sm">Static Email Footer</h3>
+                                    <h3 className="font-bold text-gray-700 text-sm">Email Footer</h3>
                                 </div>
                                 <pre className="text-sm text-gray-600 font-sans leading-relaxed opacity-70">
                                     {GUEST_CONSTANTS.outro}
