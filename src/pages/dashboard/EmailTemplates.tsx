@@ -4,7 +4,7 @@ import {
     useUpdateEmailTemplatesMutation,
     usePreviewEmailTemplateMutation,
 } from "../../store/apiSlice";
-import { Mail, Eye, Save, Info, AlertCircle, CheckCircle2, ChevronRight, Copy, Plus, X } from "lucide-react";
+import { Mail, Eye, Save, Info, AlertCircle, CheckCircle2, Copy, Plus, X } from "lucide-react";
 import clsx from "clsx";
 
 interface TemplateState {
