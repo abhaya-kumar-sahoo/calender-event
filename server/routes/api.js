@@ -104,6 +104,8 @@ router.post(
                 userId: req.user._id,
                 guestConfirmation: {
                     subject: "Confirmation: {{eventTitle}} with {{hostName}}",
+                    intro: GUEST_CONSTANTS.intro,
+                    outro: GUEST_CONSTANTS.outro,
                     body: "",
                     bodyBlocks: [""]
                 }
@@ -212,6 +214,8 @@ router.get("/event-templates", isAuthenticated, async (req, res) => {
                     userId: req.user._id,
                     guestConfirmation: {
                         subject: "Confirmation: {{eventTitle}} with {{hostName}}",
+                        intro: GUEST_CONSTANTS.intro,
+                        outro: GUEST_CONSTANTS.outro,
                         body: "",
                         bodyBlocks: [""]
                     }
@@ -690,6 +694,8 @@ router.post("/bookings", async (req, res) => {
             hostWebsite: host.website,
             hostPhone: host.phoneNumber,
             customBody: eventTemplate?.guestConfirmation?.body || host.emailTemplates?.guestConfirmation?.body,
+            intro: eventTemplate?.guestConfirmation?.intro || host.emailTemplates?.guestConfirmation?.intro,
+            outro: eventTemplate?.guestConfirmation?.outro || host.emailTemplates?.guestConfirmation?.outro,
             bodyBlocks: eventTemplate?.guestConfirmation?.bodyBlocks?.length ? eventTemplate.guestConfirmation.bodyBlocks : host.emailTemplates?.guestConfirmation?.bodyBlocks,
             hostInstagram: host.instagram,
             hostFacebook: host.facebook,
@@ -932,7 +938,7 @@ router.put("/user/email-templates", isAuthenticated, async (req, res) => {
 
 router.post("/user/email-templates/preview", isAuthenticated, async (req, res) => {
     try {
-        const { type, template, subjectTemplate, bodyBlocks } = req.body;
+        const { type, template, subjectTemplate, bodyBlocks, intro, outro } = req.body;
 
         const dummyData = {
             guestName: "John Doe",
@@ -964,6 +970,8 @@ router.post("/user/email-templates/preview", isAuthenticated, async (req, res) =
                 hostWebsite: dummyData.website,
                 hostPhone: dummyData.phoneNumber,
                 bodyBlocks: bodyBlocks,
+                intro: intro,
+                outro: outro,
                 hostInstagram: req.user.instagram,
                 hostFacebook: req.user.facebook,
                 hostProfileImage: req.user.picture

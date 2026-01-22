@@ -367,7 +367,7 @@ export default function Scheduling() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Scheduling</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Meeting Template</h1>
           <p className="text-gray-500">
             Create events to share for people to book.
           </p>

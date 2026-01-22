@@ -161,6 +161,8 @@ const getGuestEmailHtml = ({
     hostWebsite,
     hostPhone,
     customBody,
+    intro,
+    outro,
     bodyBlocks,
     hostInstagram,
     hostFacebook,
@@ -222,10 +224,10 @@ const getGuestEmailHtml = ({
 
     // As per new design: Guest email has constant parts and dynamic blocks
     const introHtml = formatBodyToHtml(
-        renderTemplate(GUEST_CONSTANTS.intro, templateData),
+        renderTemplate(intro || GUEST_CONSTANTS.intro, templateData),
     );
     const outroHtml = formatBodyToHtml(
-        renderTemplate(GUEST_CONSTANTS.outro, templateData),
+        renderTemplate(outro || GUEST_CONSTANTS.outro, templateData),
     );
 
     // Map blocks to HTML

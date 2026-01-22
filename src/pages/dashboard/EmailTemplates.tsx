@@ -11,6 +11,8 @@ import clsx from "clsx";
 
 interface TemplateState {
     subject: string;
+    intro: string;
+    outro: string;
     body: string;
     bodyBlocks?: string[];
 }
@@ -42,6 +44,8 @@ We have scheduled your session and look forward to meeting with you. During our 
 const DEFAULT_TEMPLATES = {
     guestConfirmation: {
         subject: GUEST_CONSTANTS.subject,
+        intro: GUEST_CONSTANTS.intro,
+        outro: GUEST_CONSTANTS.outro,
         body: "",
         bodyBlocks: [""],
     }
@@ -62,12 +66,15 @@ const EmailTemplates: React.FC = () => {
     });
 
     const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
+    const [showAdvanced, setShowAdvanced] = useState(false);
 
     useEffect(() => {
         if (selectedTemplateId === "global" && user?.emailTemplates) {
             setTemplates({
                 guestConfirmation: {
-                    subject: GUEST_CONSTANTS.subject,
+                    subject: user.emailTemplates.guestConfirmation?.subject || GUEST_CONSTANTS.subject,
+                    intro: user.emailTemplates.guestConfirmation?.intro || GUEST_CONSTANTS.intro,
+                    outro: user.emailTemplates.guestConfirmation?.outro || GUEST_CONSTANTS.outro,
                     body: user.emailTemplates.guestConfirmation?.body || "",
                     bodyBlocks: user.emailTemplates.guestConfirmation?.bodyBlocks || [""],
                 }
@@ -78,6 +85,8 @@ const EmailTemplates: React.FC = () => {
                 setTemplates({
                     guestConfirmation: {
                         subject: et.guestConfirmation?.subject || GUEST_CONSTANTS.subject,
+                        intro: et.guestConfirmation?.intro || GUEST_CONSTANTS.intro,
+                        outro: et.guestConfirmation?.outro || GUEST_CONSTANTS.outro,
                         body: et.guestConfirmation?.body || "",
                         bodyBlocks: et.guestConfirmation?.bodyBlocks || [""],
                     }
@@ -122,7 +131,6 @@ const EmailTemplates: React.FC = () => {
 
     const removeBodyBlock = (index: number) => {
         const blocks = templates.guestConfirmation.bodyBlocks || [""];
-        if (blocks.length <= 1) return;
         const newBlocks = blocks.filter((_, i) => i !== index);
         setTemplates({
             ...templates,
@@ -241,38 +249,62 @@ const EmailTemplates: React.FC = () => {
                         <div className="p-8 grid grid-cols-1 xl:grid-cols-3 gap-8 text-black">
                             <div className="xl:col-span-2 space-y-6">
                                 <div className="space-y-8">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between ml-1">
-                                            <label className="text-sm font-bold text-gray-700">Subject Line</label>
-                                            {selectedTemplateId !== "global" && (
-                                                <button
-                                                    onClick={() => setTemplates(t => ({ ...t, guestConfirmation: { ...t.guestConfirmation, subject: GUEST_CONSTANTS.subject } }))}
-                                                    className="text-[10px] font-bold text-blue-600 hover:underline"
-                                                >
-                                                    Reset to Default
-                                                </button>
-                                            )}
+                                    <div className="space-y-2 mb-8 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div className="flex items-center justify-between ml-1 ">
+                                            <label className="text-sm font-bold  text-blue-900">Subject Line</label>
+                                            <button
+                                                onClick={() => setTemplates(t => ({
+                                                    ...t,
+                                                    guestConfirmation: {
+                                                        ...t.guestConfirmation,
+                                                        subject: GUEST_CONSTANTS.subject,
+                                                        intro: GUEST_CONSTANTS.intro,
+                                                        outro: GUEST_CONSTANTS.outro,
+                                                        bodyBlocks: DEFAULT_TEMPLATES.guestConfirmation.bodyBlocks
+                                                    }
+                                                }))}
+                                                className="text-[10px] font-bold text-blue-600 hover:underline"
+                                            >
+                                                Reset All to Default
+                                            </button>
                                         </div>
-                                        <div className="relative group">
-                                            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                            <input
-                                                type="text"
-                                                className="w-full pl-13 pr-5 py-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
-                                                value={templates.guestConfirmation.subject}
-                                                onChange={(e) => setTemplates({ ...templates, guestConfirmation: { ...templates.guestConfirmation, subject: e.target.value } })}
-                                                placeholder="Enter subject line..."
-                                            />
-                                        </div>
+                                        {showAdvanced ?
+                                            <div className="relative group ">
+                                                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    className="w-full pl-13 pr-5 py-4 bg-blue-50/50 rounded-2xl text-blue-900 border border-gray-100  focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
+                                                    value={templates.guestConfirmation.subject}
+                                                    onChange={(e) => setTemplates({ ...templates, guestConfirmation: { ...templates.guestConfirmation, subject: e.target.value } })}
+                                                    placeholder="Enter subject line..."
+                                                />
+                                            </div>
+                                            : <div className="text-sm text-gray-600  font-sans leading-relaxed opacity-70 italic">
+                                                {templates.guestConfirmation.subject}
+                                            </div>
+                                        }
                                     </div>
 
                                     <div className="p-6 bg-blue-50/50 rounded-4xl border border-blue-100/50 space-y-4">
                                         <div className="flex items-center gap-2 mb-2">
                                             <Info className="w-5 h-5 text-blue-600" />
-                                            <h3 className="font-bold text-blue-900 text-sm">Email Header (Constant)</h3>
+                                            <h3 className="font-bold text-blue-900 text-sm">
+                                                {showAdvanced ? "Edit Email Header (Intro)" : "Email Header (Live Preview)"}
+                                            </h3>
                                         </div>
-                                        <pre className="text-sm text-blue-800 whitespace-pre-wrap font-sans leading-relaxed opacity-70">
-                                            {GUEST_CONSTANTS.intro}
-                                        </pre>
+                                        {showAdvanced ? (
+                                            <textarea
+                                                rows={5}
+                                                className="w-full px-4 py-3 rounded-2xl border border-blue-200 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none text-sm leading-relaxed text-blue-900"
+                                                value={templates.guestConfirmation.intro}
+                                                onChange={(e) => setTemplates({ ...templates, guestConfirmation: { ...templates.guestConfirmation, intro: e.target.value } })}
+                                                placeholder="Enter email header..."
+                                            />
+                                        ) : (
+                                            <div className="text-sm text-blue-800 whitespace-pre-wrap font-sans leading-relaxed opacity-70 italic">
+                                                {templates.guestConfirmation.intro}
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="space-y-4">
@@ -306,14 +338,12 @@ const EmailTemplates: React.FC = () => {
                                                             )}>
                                                                 {wordCount}/50
                                                             </span>
-                                                            {(templates.guestConfirmation.bodyBlocks || []).length > 1 && (
-                                                                <button
-                                                                    onClick={() => removeBodyBlock(idx)}
-                                                                    className="p-1 hover:bg-red-100 rounded-lg text-red-500 transition-colors"
-                                                                >
-                                                                    <X className="w-4 h-4" />
-                                                                </button>
-                                                            )}
+                                                            <button
+                                                                onClick={() => removeBodyBlock(idx)}
+                                                                className="p-1 hover:bg-red-100 rounded-lg text-red-500 transition-colors"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 );
@@ -333,40 +363,79 @@ const EmailTemplates: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="p-6 bg-gray-50 rounded-4xl border border-gray-100 space-y-4">
+                                    <div className="p-6 bg-blue-50/50 rounded-4xl border border-gray-100 space-y-4">
                                         <div className="flex items-center gap-2 mb-2">
                                             <Info className="w-5 h-5 text-gray-400" />
-                                            <h3 className="font-bold text-gray-700 text-sm">Email Footer (Constant)</h3>
+                                            <h3 className="font-bold text-gray-700 text-sm">
+                                                {showAdvanced ? "Edit Email Footer (Outro)" : "Email Footer (Live Preview)"}
+                                            </h3>
                                         </div>
-                                        <pre className="text-sm text-gray-600 font-sans leading-relaxed opacity-70">
-                                            {GUEST_CONSTANTS.outro}
-                                        </pre>
+                                        {showAdvanced ? (
+                                            <textarea
+                                                rows={3}
+                                                className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-blue-50/50 focus:ring-4 focus:ring-blue-500/10 outline-none text-sm leading-relaxed text-gray-700"
+                                                value={templates.guestConfirmation.outro}
+                                                onChange={(e) => setTemplates({ ...templates, guestConfirmation: { ...templates.guestConfirmation, outro: e.target.value } })}
+                                                placeholder="Enter email footer..."
+                                            />
+                                        ) : (
+                                            <div className="text-sm text-gray-600  font-sans leading-relaxed opacity-70 italic">
+                                                {templates.guestConfirmation.outro}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
 
                             <div className="space-y-6">
                                 <div className="p-6 bg-gray-50 rounded-4xl border border-gray-100 h-full">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <Info className="w-5 h-5 text-blue-600" />
-                                        <h3 className="font-bold text-gray-900">Placeholders</h3>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mb-4 font-medium">Click to copy placeholder tag</p>
-                                    <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                                        {placeholders.map((p) => (
-                                            <button
-                                                key={p.name}
-                                                onClick={() => copyToClipboard(p.name)}
-                                                className="w-full text-left p-3 rounded-xl bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group relative"
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-sm font-mono text-blue-600 font-bold">{`{{${p.name}}}`}</span>
-                                                    <Copy className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <button
+                                        onClick={() => setShowAdvanced(!showAdvanced)}
+                                        className="w-full flex items-center justify-between group"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Info className="w-5 h-5 text-blue-600" />
+                                            <h3 className="font-bold text-gray-900">Advanced Features</h3>
+                                        </div>
+                                        <div className={clsx(
+                                            "p-1 rounded-lg transition-all",
+                                            showAdvanced ? "bg-blue-100 text-blue-600 rotate-180" : "bg-gray-100 text-gray-400"
+                                        )}>
+                                            <Plus className={clsx("w-4 h-4 transition-transform", showAdvanced && "rotate-45")} />
+                                        </div>
+                                    </button>
+
+                                    {showAdvanced && (
+                                        <div className="mt-6 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <div className="space-y-4 pt-4 border-t border-gray-100">
+                                                <div className="pb-2">
+                                                    <h4 className="text-sm font-bold text-gray-700">Available Placeholders</h4>
+                                                    <p className="text-xs text-gray-500 mt-1 font-medium">Click to copy placeholder tag</p>
                                                 </div>
-                                                <p className="text-xs text-gray-500 mt-1">{p.description}</p>
-                                            </button>
-                                        ))}
-                                    </div>
+                                                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                                                    {placeholders.map((p) => (
+                                                        <button
+                                                            key={p.name}
+                                                            onClick={() => copyToClipboard(p.name)}
+                                                            className="w-full text-left p-3 rounded-xl bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group relative"
+                                                        >
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-sm font-mono text-blue-600 font-bold">{`{{${p.name}}}`}</span>
+                                                                <Copy className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            </div>
+                                                            <p className="text-xs text-gray-500 mt-1">{p.description}</p>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {!showAdvanced && (
+                                        <p className="text-xs text-gray-400 mt-4 text-center">
+                                            Configure custom variables and placeholders for your email templates.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </div>

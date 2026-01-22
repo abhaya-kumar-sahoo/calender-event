@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema({
     emailTemplates: {
         guestConfirmation: {
             subject: { type: String, default: "Confirmation: {{eventTitle}} with {{hostName}}" },
+            intro: { type: String },
+            outro: { type: String },
             body: { type: String },
             bodyBlocks: { type: [String], default: [] }
         },

@@ -5,6 +5,8 @@ const emailTemplateSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     guestConfirmation: {
         subject: { type: String, default: "Confirmation: {{eventTitle}} with {{hostName}}" },
+        intro: { type: String },
+        outro: { type: String },
         body: { type: String },
         bodyBlocks: { type: [String], default: [""] }
     },
