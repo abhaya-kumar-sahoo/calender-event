@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const EventType = require("../models/EventType");
+const EmailTemplate = require("../models/EmailTemplate");
 const Booking = require("../models/Booking");
 const User = require("../models/User");
 const { createCalendarEvent } = require("../utils/googleCalendar");
@@ -96,6 +97,18 @@ router.post(
                 ...eventData,
                 userId: req.user._id,
             });
+
+            // Create default EmailTemplate for this event type
+            await EmailTemplate.create({
+                eventTypeId: event._id,
+                userId: req.user._id,
+                guestConfirmation: {
+                    subject: "Confirmation: {{eventTitle}} with {{hostName}}",
+                    body: "",
+                    bodyBlocks: [""]
+                }
+            });
+
             res.json(event);
         } catch (err) {
             res.status(500).json({ error: err.message });
@@ -174,7 +187,59 @@ router.delete("/events/:id", isAuthenticated, async (req, res) => {
         if (!event) {
             return res.status(404).json({ message: "Event not found" });
         }
+
+        // Delete associated EmailTemplate
+        await EmailTemplate.deleteOne({ eventTypeId: req.params.id });
+
         res.json({ message: "Event deleted" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- Event Specific Email Templates ---
+router.get("/event-templates", isAuthenticated, async (req, res) => {
+    try {
+        const events = await EventType.find({ userId: req.user._id });
+        const templates = await EmailTemplate.find({ userId: req.user._id });
+
+        // Map events to their templates, creating defaults for missing ones
+        const result = await Promise.all(events.map(async (event) => {
+            let template = templates.find(t => t.eventTypeId.toString() === event._id.toString());
+            if (!template) {
+                template = await EmailTemplate.create({
+                    eventTypeId: event._id,
+                    userId: req.user._id,
+                    guestConfirmation: {
+                        subject: "Confirmation: {{eventTitle}} with {{hostName}}",
+                        body: "",
+                        bodyBlocks: [""]
+                    }
+                });
+            }
+            // For response, we want to include the event title
+            const templateObj = template.toObject();
+            templateObj.eventTypeId = { _id: event._id, title: event.title, color: event.color };
+            return templateObj;
+        }));
+
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.put("/event-templates/:id", isAuthenticated, async (req, res) => {
+    try {
+        const template = await EmailTemplate.findOneAndUpdate(
+            { _id: req.params.id, userId: req.user._id },
+            req.body,
+            { new: true }
+        );
+        if (!template) {
+            return res.status(404).json({ message: "Template not found" });
+        }
+        res.json(template);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -606,6 +671,9 @@ router.post("/bookings", async (req, res) => {
 
         const formattedDate = `${datePart} ⋅ ${startTimePart} – ${endTimePart} (${tzName} - ${city})`;
 
+        // Check for event-specific template
+        const eventTemplate = eventId ? await EmailTemplate.findOne({ eventTypeId: eventId }) : null;
+
         // Format for Guest Email
         const guestEmailHtml = getGuestEmailHtml({
             guestName,
@@ -621,8 +689,8 @@ router.post("/bookings", async (req, res) => {
             hostAddress: host.address,
             hostWebsite: host.website,
             hostPhone: host.phoneNumber,
-            customBody: host.emailTemplates?.guestConfirmation?.body,
-            bodyBlocks: host.emailTemplates?.guestConfirmation?.bodyBlocks,
+            customBody: eventTemplate?.guestConfirmation?.body || host.emailTemplates?.guestConfirmation?.body,
+            bodyBlocks: eventTemplate?.guestConfirmation?.bodyBlocks?.length ? eventTemplate.guestConfirmation.bodyBlocks : host.emailTemplates?.guestConfirmation?.bodyBlocks,
             hostInstagram: host.instagram,
             hostFacebook: host.facebook,
             hostProfileImage: host.picture
@@ -648,13 +716,15 @@ router.post("/bookings", async (req, res) => {
             hostAddress: host.address,
             hostWebsite: host.website,
             hostPhone: host.phoneNumber,
-            customBody: host.emailTemplates?.hostNotification?.body,
+            customBody: eventTemplate?.hostNotification?.body || host.emailTemplates?.hostNotification?.body,
             hostInstagram: host.instagram,
             hostFacebook: host.facebook,
             hostProfileImage: host.picture
         });
 
-        const guestSubject = renderTemplate(GUEST_CONSTANTS.subject, { eventTitle, hostName: host.name });
+        const guestSubject = eventTemplate?.guestConfirmation?.subject
+            ? renderTemplate(eventTemplate.guestConfirmation.subject, { eventTitle, hostName: host.name })
+            : renderTemplate(GUEST_CONSTANTS.subject, { eventTitle, hostName: host.name });
 
         // Send to Guests
         allGuests.forEach((email) =>

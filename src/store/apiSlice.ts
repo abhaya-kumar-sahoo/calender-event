@@ -8,7 +8,7 @@ export const apiSlice = createApi({
     baseUrl: baseUrl,
     credentials: "include",
   }),
-  tagTypes: ["User", "Events", "Bookings"],
+  tagTypes: ["User", "Events", "Bookings", "EmailTemplates"],
   endpoints: (builder) => ({
     // Auth
     checkAuth: builder.query<any, void>({
@@ -64,6 +64,18 @@ export const apiSlice = createApi({
         method: "POST",
         body,
       }),
+    }),
+    getEventTemplates: builder.query<any[], void>({
+      query: () => "/api/event-templates",
+      providesTags: ["EmailTemplates"],
+    }),
+    updateEventTemplate: builder.mutation<any, { id: string; updates: any }>({
+      query: ({ id, updates }) => ({
+        url: `/api/event-templates/${id}`,
+        method: "PUT",
+        body: updates,
+      }),
+      invalidatesTags: ["EmailTemplates"],
     }),
 
     // Events
@@ -180,6 +192,8 @@ export const {
   useUpdateProfileMutation,
   useUpdateEmailTemplatesMutation,
   usePreviewEmailTemplateMutation,
+  useGetEventTemplatesQuery,
+  useUpdateEventTemplateMutation,
   useGetEventsQuery,
   useGetPublicEventQuery,
   useGetSlotAvailabilityQuery,

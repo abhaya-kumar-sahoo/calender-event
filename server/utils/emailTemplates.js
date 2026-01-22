@@ -73,7 +73,7 @@ const getEmailBrandingHeader = (businessName = "Invite", profileImage) => `
                 <v:fill type='frame' src='https://calender-event.s3.ap-south-1.amazonaws.com/event-images/Group.png' color='#fce5cd'/>
                 <v:textbox inset='0,0,0,0'>
             <![endif]-->
-            <img src="${profileImage || 'https://calender-event.s3.ap-south-1.amazonaws.com/event-images/logo.png'}"
+            <img src="${profileImage || "https://calender-event.s3.ap-south-1.amazonaws.com/event-images/logo.png"}"
                  alt="${businessName}" 
                  style="display:block; width:30%; height:100px  ;  object-fit: fill;">
             <!--[if gte mso 9]>
@@ -85,7 +85,15 @@ const getEmailBrandingHeader = (businessName = "Invite", profileImage) => `
 </table>
 `;
 
-const getEmailFooter = (businessName = "Invite", website = "#", address = "", phoneNumber = "", instagram = "", facebook = "", profileImage) => `
+const getEmailFooter = (
+    businessName = "Invite",
+    website = "#",
+    address = "",
+    phoneNumber = "",
+    instagram = "",
+    facebook = "",
+    profileImage,
+) => `
 <!-- Stay Connected Footer -->
 <div class="footer-box" style="background-color: #fce5cd; padding: 40px 20px; text-align: center;">
     <h3 class="footer-text" style="color: #8c6239; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 20px 0; font-weight: normal; font-size: 20px;">Stay Connected</h3>
@@ -122,7 +130,10 @@ const formatBodyToHtml = (text) => {
     if (!text) return "";
     return text
         .split("\n\n")
-        .map(para => `<p class="text-main" style="font-size: 14px; margin-bottom: 20px;">${para.replace(/\n/g, "<br>")}</p>`)
+        .map(
+            (para) =>
+                `<p class="text-main" style="font-size: 14px; margin-bottom: 20px;">${para.replace(/\n/g, "<br>")}</p>`,
+        )
         .join("");
 };
 
@@ -153,7 +164,7 @@ const getGuestEmailHtml = ({
     bodyBlocks,
     hostInstagram,
     hostFacebook,
-    hostProfileImage
+    hostProfileImage,
 }) => {
     const businessName = hostBusinessName || "Invite";
     const address = hostAddress || eventData.locationAddress || "";
@@ -204,32 +215,37 @@ const getGuestEmailHtml = ({
         address,
         website,
         phoneNumber,
-        hostName: hostBusinessName || "the host"
+        hostName: hostBusinessName || "the host",
     };
 
     let bodyContent = "";
 
     // As per new design: Guest email has constant parts and dynamic blocks
-    const introHtml = formatBodyToHtml(renderTemplate(GUEST_CONSTANTS.intro, templateData));
-    const outroHtml = formatBodyToHtml(renderTemplate(GUEST_CONSTANTS.outro, templateData));
+    const introHtml = formatBodyToHtml(
+        renderTemplate(GUEST_CONSTANTS.intro, templateData),
+    );
+    const outroHtml = formatBodyToHtml(
+        renderTemplate(GUEST_CONSTANTS.outro, templateData),
+    );
 
     // Map blocks to HTML
-    const blocksHtml = (bodyBlocks || []).map(block =>
-        formatBodyToHtml(renderTemplate(block, templateData))
-    ).join("");
+    const blocksHtml = (bodyBlocks || [])
+        .map((block) => formatBodyToHtml(renderTemplate(block, templateData)))
+        .join("");
 
     bodyContent = introHtml + blocksHtml + outroHtml;
 
     // Handle meeting link / location card if not in custom blocks
     if (!bodyContent.includes(meetingLink || "Location:")) {
-        bodyContent += eventData.location === "gmeet" && meetingLink
-            ? `
+        bodyContent +=
+            eventData.location === "gmeet" && meetingLink
+                ? `
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
                 <p class="text-sub" style="font-size: 12px; text-transform: uppercase; color: #999; margin: 0 0 5px 0;">Google Meet Link</p>
                 <a href="${meetingLink}" style="color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 500;">${meetingLink}</a>
             </div>
             `
-            : `
+                : `
             <div class="info-card" style="margin-bottom: 25px; padding: 15px; background-color: #f9fafb; border-radius: 8px; border: 1px solid #f3f4f6;">
                 <p class="text-main" style="font-size: 14px; margin: 0;"><strong>Location:</strong> ${businessName}</p>
                 <p class="text-main" style="font-size: 14px; margin: 4px 0;"><strong>Address:</strong> ${address}</p>
@@ -281,7 +297,7 @@ const getHostEmailHtml = ({
     customBody,
     hostInstagram,
     hostFacebook,
-    hostProfileImage
+    hostProfileImage,
 }) => {
     const defaultBody = `
         <p class="text-main" style="font-size: 16px; margin-bottom: 25px;">Hi ${hostName || hostBusinessName || "Invite"},</p>
@@ -362,24 +378,28 @@ const getHostEmailHtml = ({
         </div>
     `;
 
-    const bodyContent = customBody ? formatBodyToHtml(renderTemplate(customBody, {
-        hostName,
-        guestName,
-        guestEmail,
-        eventTitle,
-        formattedDate,
-        guestMobile,
-        meetingLink,
-        additionalGuests: additionalGuests?.join(", "),
-        notes,
-        duration,
-        timezone,
-        selectedLink,
-        hostBusinessName,
-        hostAddress,
-        hostWebsite,
-        hostPhone
-    })) : defaultBody;
+    const bodyContent = customBody
+        ? formatBodyToHtml(
+            renderTemplate(customBody, {
+                hostName,
+                guestName,
+                guestEmail,
+                eventTitle,
+                formattedDate,
+                guestMobile,
+                meetingLink,
+                additionalGuests: additionalGuests?.join(", "),
+                notes,
+                duration,
+                timezone,
+                selectedLink,
+                hostBusinessName,
+                hostAddress,
+                hostWebsite,
+                hostPhone,
+            }),
+        )
+        : defaultBody;
 
     return `
 <!DOCTYPE html>
@@ -404,16 +424,26 @@ ${getEmailHeader()}
 `;
 };
 
-const getOtpEmailHtml = (otp, type = 'booking', businessName = "Invite", website = "#", address = "", phoneNumber = "") => {
-    let title = 'Verify Your Email';
-    let message = 'Please use the following code to confirm your email address and complete your booking.';
+const getOtpEmailHtml = (
+    otp,
+    type = "booking",
+    businessName = "Invite",
+    website = "#",
+    address = "",
+    phoneNumber = "",
+) => {
+    let title = "Verify Your Email";
+    let message =
+        "Please use the following code to confirm your email address and complete your booking.";
 
-    if (type === 'register') {
-        title = 'Complete Your Registration';
-        message = 'Please use the following code to verify your email address and create your account.';
-    } else if (type === 'reset') {
-        title = 'Reset Your Password';
-        message = 'Please use the following code to verify your identity and reset your password.';
+    if (type === "register") {
+        title = "Complete Your Registration";
+        message =
+            "Please use the following code to verify your email address and create your account.";
+    } else if (type === "reset") {
+        title = "Reset Your Password";
+        message =
+            "Please use the following code to verify your identity and reset your password.";
     }
 
     return `
